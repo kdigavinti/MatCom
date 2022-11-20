@@ -1,0 +1,26 @@
+﻿<Window x:Class="MatCom.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MatCom.UI"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="800" Width="1024">
+    <Grid>
+        <DockPanel>
+            <Menu DockPanel.Dock="Top" FontSize="18">
+                <MenuItem Header="_Calculator" Name="menuItemCalculator" Click="MenuItemCalculator_Click" Background="LightBlue" Margin="0,2,0,2">
+
+                </MenuItem>
+                <MenuItem Header="_Graph" Name="menuItemGraph" Click="MenuGraph_Click" Background="Transparent"  Margin="0,2,0,2">
+
+                </MenuItem>
+            </Menu>
+            <StackPanel>
+                <Frame Name="frameCalculator" Visibility="Visible" Source="Calculator.xaml" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"  ></Frame>
+                <Frame Name="frameGraph" Visibility="Collapsed" Source="Graph.xaml" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"  ></Frame>
+            </StackPanel>
+
+        </DockPanel>
+    </Grid>
+</Window>

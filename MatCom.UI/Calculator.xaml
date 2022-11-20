@@ -1,0 +1,85 @@
+﻿<Page x:Class="MatCom.UI.Calculator"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:MatCom.UI"
+      mc:Ignorable="d" 
+      d:DesignHeight="800" d:DesignWidth="1024"
+      Title="Calculator">
+
+    <Grid>
+        <DockPanel Name="dockRight">
+            <TabControl DockPanel.Dock="Right" Width="350">
+                <TabItem Header="Symbol Table">
+                    <ListView></ListView>
+                </TabItem>
+                <TabItem Header="Tokens" />
+                <TabItem Header="Semantics" />
+            </TabControl>
+            <StackPanel Name="Fill">
+                <RichTextBox Height="400" x:Name="rtbOutputWindow"
+                     VerticalScrollBarVisibility="Visible" 
+                     HorizontalScrollBarVisibility="Visible" 
+                     IsReadOnly="True" FontSize="16"
+                     Background="#FF1C1616" Foreground="White"
+                     VerticalAlignment="Bottom">
+                    <FlowDocument/>
+                </RichTextBox>
+                <Grid Height="324">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <TextBox Name="txtInput" Grid.Row="0" Grid.ColumnSpan="3" KeyUp="TxtInput_KeyUp" FontSize="16"></TextBox>
+                    <Button Grid.Column="3" Grid.Row="0" FontSize="18" Name="btnEnter" Click="BtnEnter_Click">Enter</Button>
+                    <Button Grid.Column="4" Grid.Row="0" FontSize="18" Name="btnCE" Click="BtnCE_Click">CE</Button>
+                    <Button Grid.Column="0" Grid.Row="1" FontSize="18" Name="btnNegate" Click="BtnAll_Click" >+/-</Button>
+                    <Button Grid.Column="1" Grid.Row="1" FontSize="18" Name="btnNum7" Click="BtnAll_Click" Tag="7">7</Button>
+                    <Button Grid.Column="2" Grid.Row="1" FontSize="18" Name="btnNum8" Click="BtnAll_Click" Tag="8">8</Button>
+                    <Button Grid.Column="3" Grid.Row="1" FontSize="18" Name="btnNum9" Click="BtnAll_Click" Tag="9">9</Button>
+                    <Button Grid.Column="4" Grid.Row="1" FontSize="18" Name="btnMul" Click="BtnAll_Click" Tag="*">*</Button>
+                    <Button Grid.Column="0" Grid.Row="2" FontSize="18" Name="btnLPar" Click="BtnAll_Click" Tag="(">(</Button>
+                    <Button Grid.Column="1" Grid.Row="2" FontSize="18" Name="btnNum4" Click="BtnAll_Click" Tag="4">4</Button>
+                    <Button Grid.Column="2" Grid.Row="2" FontSize="18" Name="btnNum5" Click="BtnAll_Click" Tag="5">5</Button>
+                    <Button Grid.Column="3" Grid.Row="2" FontSize="18" Name="btnNum6" Click="BtnAll_Click" Tag="6">6</Button>
+                    <Button Grid.Column="4" Grid.Row="2" FontSize="18" Name="btnDiv" Click="BtnAll_Click" Tag="/">/</Button>
+                    <Button Grid.Column="0" Grid.Row="3" FontSize="18" Name="btnRPar" Click="BtnAll_Click" Tag=")">)</Button>
+                    <Button Grid.Column="1" Grid.Row="3" FontSize="18" Name="btnNum1" Click="BtnAll_Click" Tag="1">1</Button>
+                    <Button Grid.Column="2" Grid.Row="3" FontSize="18" Name="btnNum2" Click="BtnAll_Click" Tag="2">2</Button>
+                    <Button Grid.Column="3" Grid.Row="3" FontSize="18" Name="btnNum3" Click="BtnAll_Click" Tag="3">3</Button>
+                    <Button Grid.Column="4" Grid.Row="3" FontSize="18" Name="btnAdd" Click="BtnAll_Click" Tag="+">+</Button>
+                    <Button Grid.Column="0" Grid.Row="4" FontSize="18" Name="btnPi" Click="BtnAll_Click" Tag="π" >π</Button>
+                    <Button Grid.Column="1" Grid.Row="4" FontSize="18" Name="btnExp" Click="BtnAll_Click" Tag="e">e</Button>
+                    <Button Grid.Column="2" Grid.Row="4" FontSize="18" Name="btnNum0" Click="BtnAll_Click" Tag="0">0</Button>
+                    <Button Grid.Column="3" Grid.Row="4" FontSize="18" Name="btnDot" Click="BtnAll_Click" Tag=".">.</Button>
+                    <Button Grid.Column="4" Grid.Row="4" FontSize="18" Name="btnEquals" Click="BtnAll_Click" Tag="=">=</Button>
+                    <Button Grid.Column="0" Grid.Row="5" FontSize="18" Name="btnSqr" Click="BtnAll_Click" Tag="^2">
+                        <TextBlock>
+                            <Run>x</Run>
+                            <Run Typography.Variants="Superscript">2</Run>
+                        </TextBlock>
+                    </Button>
+                    <Button Grid.Column="1" Grid.Row="5" FontSize="18" Name="btnSqrt" Click="BtnAll_Click" Tag="sqrt">sqrt</Button>
+                    <Button Grid.Column="2" Grid.Row="5" FontSize="18" Name="btnCarat" Click="BtnAll_Click" Tag="^">^</Button>
+                    <Button Grid.Column="3" Grid.Row="5" FontSize="18" Name="btnLog" Click="BtnAll_Click" Tag="log">log</Button>
+                    <Button Grid.Column="4" Grid.Row="5" FontSize="18" Name="btnMod" Click="BtnAll_Click" Tag="%">%</Button>
+
+                </Grid>
+            </StackPanel>
+
+        </DockPanel>
+    </Grid>
+</Page>

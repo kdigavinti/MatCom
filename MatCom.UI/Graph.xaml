@@ -1,0 +1,48 @@
+﻿<Page x:Class="MatCom.UI.Graph"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:MatCom.UI"
+      mc:Ignorable="d" 
+      d:DesignHeight="770" d:DesignWidth="1024"
+      Title="Graph">
+
+    <Grid Height="770">
+
+        <DockPanel Name="dockRight">
+            <StackPanel DockPanel.Dock="Right" Orientation="Vertical" Width="250" Background="#F0F4F9" >
+
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="+" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="30" Click="BtnZoomIn_Click"  Margin="10,10,0,0" Visibility="Visible" Name="btnZoomIn"/>
+                    <Button Content="-" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="30" Click="BtnZoomOut_Click" Margin="10,10,0,0" Visibility="Visible" Name="btnZoomOut"/>
+                    <Button Content="Left" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Click="BtnLeftPan_Click"  Margin="10,10,0,0" Visibility="Visible" Name="btnLeftPan"/>
+                    <Button Content="Right" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Click="BtnRightPan_Click" Margin="10,10,0,0" Visibility="Visible" Name="btnRightPan"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <!--<Label VerticalAlignment="Center" FontSize="18">f1</Label>-->
+                    <TextBox FontSize="18" HorizontalAlignment="Center" Margin="10,10,10,10" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="230" KeyDown="TxtF1_KeyDown" Name="txtF1"/>
+
+                </StackPanel>
+                <!--<StackPanel Orientation="Horizontal">
+                    <Label VerticalAlignment="Center">f2</Label>
+                    <TextBox HorizontalAlignment="Left" Margin="0,10,20,10"  TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="220" Name="txtF2"/>
+
+                </StackPanel>-->
+
+            </StackPanel>
+
+            <Canvas x:Name="chartCanvas" MouseWheel="ChartCanvas_MouseWheel" MouseLeftButtonDown="ChartCanvas_MouseLeftButtonDown" MouseLeftButtonUp="ChartCanvas_MouseLeftButtonUp"
+                Background="White" Margin="0,0,0,0" ClipToBounds="True">
+                <Canvas.RenderTransform>
+                    <MatrixTransform x:Name="mt"/>
+                </Canvas.RenderTransform>
+
+            </Canvas>
+
+        </DockPanel>
+    </Grid>
+
+</Page>

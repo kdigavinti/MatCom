@@ -29,7 +29,7 @@ namespace MatCom.UI
         double _zoomFactor = 1;
         double _steps = 1;
         double _stepsToCalculatePoints = 0.2;
-
+        
         System.Windows.Point _origin;
 
         System.Windows.Point _last, _start;
@@ -46,15 +46,17 @@ namespace MatCom.UI
         }
 
         private void BtnZoomIn_Click(object sender, RoutedEventArgs e)
-        {
+        {            
             _zoomFactor = _zoomFactor * 0.5;
+            _steps = ((_steps*5).ToString().Contains("5")) ? _steps * 0.4 : _steps * 0.5 ;
             _stepsToCalculatePoints = (_stepsToCalculatePoints >= 0.01) ? _stepsToCalculatePoints * 0.5 : _stepsToCalculatePoints;
             PlotGraph();
         }
 
         private void BtnZoomOut_Click(object sender, RoutedEventArgs e)
-        {
+        {            
             _zoomFactor = _zoomFactor * 2;
+            _steps = ((_steps * 5).ToString().Contains("2")) ? _steps * 2.5 : _steps * 2;
             PlotGraph();
         }
 
@@ -254,7 +256,7 @@ namespace MatCom.UI
 
                     if (idx != 0 && idx % 5 == 0)
                     {
-                        axisLabels.Add(new AxisLabel(_origin.X, y, "-" + idx.ToString(), AxisType.YAxis));
+                        axisLabels.Add(new AxisLabel(_origin.X, y, "-" + (_steps * idx).ToString(), AxisType.YAxis));
 
                     }
                     idx++;
@@ -286,7 +288,7 @@ namespace MatCom.UI
                     chartCanvas.Children.Add(xAxisLine);
                     if (idx != 0 && idx % 5 == 0)
                     {
-                        axisLabels.Add(new AxisLabel(_origin.X, y, idx.ToString(), AxisType.YAxis));
+                        axisLabels.Add(new AxisLabel(_origin.X, y, (_steps * idx).ToString(), AxisType.YAxis));
 
                     }
                     idx++;
@@ -320,7 +322,7 @@ namespace MatCom.UI
                     chartCanvas.Children.Add(yAxisLine);
                     if (idx != 0 && idx % 5 == 0)
                     {
-                        axisLabels.Add(new AxisLabel(x, _origin.Y, idx.ToString(), AxisType.XAxis));
+                        axisLabels.Add(new AxisLabel(x, _origin.Y, (_steps * idx).ToString(), AxisType.XAxis));
 
                     }
                     idx++;
@@ -353,7 +355,7 @@ namespace MatCom.UI
                     chartCanvas.Children.Add(yAxisLine);
                     if (idx != 0 && idx % 5 == 0)
                     {
-                        axisLabels.Add(new AxisLabel(x, _origin.Y, "-" + idx.ToString(), AxisType.XAxis));
+                        axisLabels.Add(new AxisLabel(x, _origin.Y, "-" + (_steps*idx).ToString(), AxisType.XAxis));
 
                     }
                     idx++;
@@ -444,8 +446,11 @@ namespace MatCom.UI
             List<System.Windows.Point> points = new List<System.Windows.Point>();
             foreach (var value in values)
             {
-                double xPoint = _origin.X + (value.X * _xAxisLinesGap / (_zoomFactor * _steps));
-                double yPoint = _origin.Y - (value.Y * _yAxisLinesGap / (_zoomFactor * _steps));
+                //double xPoint = _origin.X + (value.X * _xAxisLinesGap / (_zoomFactor * _steps));
+                //double yPoint = _origin.Y - (value.Y * _yAxisLinesGap / (_zoomFactor * _steps));
+                double xPoint = _origin.X + (value.X * _xAxisLinesGap / (_steps));
+                double yPoint = _origin.Y - (value.Y * _yAxisLinesGap / (_steps));
+
                 points.Add(new System.Windows.Point(xPoint, yPoint));
 
             }

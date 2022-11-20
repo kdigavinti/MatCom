@@ -15,17 +15,32 @@ namespace MatCom.Interpreter.Scanner
             this.tokens = tokens;
         }
 
-       public static List<GraphPoint> Evaluate(decimal xmin, decimal xmax, decimal steps, string expression)
+      public static void Parsing(decimal i, string expression, List<GraphPoint> points)
         {
             Parser p = new Parser();
+            //p.Parse("x = " + i.ToString());
+            double y = Convert.ToDouble(p.Parse(expression.Replace("x", i.ToString())));
+            points.Add(new GraphPoint((double)i, y));
+        }
+
+       public static List<GraphPoint> Evaluate(decimal xmin, decimal xmax, decimal steps, string expression)
+        {
+            
             List<GraphPoint> points = new List<GraphPoint>();
             double y;
+            Parser p = new Parser();
+            //Parallel.For(xmin, xmax, index =>
+            //{
+            //    p.Parse("x = " + index.ToString());
+            //    y = Convert.ToDouble(p.Parse(expression));
+            //    points.Add(new GraphPoint((double)index, y));
+            //});
             for (decimal i=xmin; i<=xmax; i = i + steps)
             {
-                p.Parse("x = " + i.ToString());
-                y = Convert.ToDouble(p.Parse(expression));
+              //  p = new Parser();
+                //p.Parse("x = " + i.ToString());
+                y = Convert.ToDouble(p.Parse(expression.Replace("x", i.ToString())));
                 points.Add(new GraphPoint((double)i, y));
-                
             }
             return points;
        /*     if(this.tokens != null && this.tokens.Count > 0)

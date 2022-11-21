@@ -120,7 +120,7 @@ namespace MatCom.Interpreter.Scanner
         {
             AST? term = Factor();
             string _operator = string.Empty;
-            while (_currToken.type != TokenType.EOF && term != null && _currToken.value is "*" or "/" or "|" or "&" or "<" or ">" or "<=" or ">=" or "==" or "!=" or "&&" or "||")
+            while (_currToken.type != TokenType.EOF && term != null && _currToken.value is "^" or "*" or "/" or "|" or "&" or "<" or ">" or "<=" or ">=" or "==" or "!=" or "&&" or "||")
             {
                 _operator = _currToken.value;
                 NextToken();

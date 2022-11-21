@@ -11,39 +11,76 @@ namespace MatCom.Interpreter.Scanner
     public class Evaluator
     {
         Queue<Token> tokens = new Queue<Token>();
-        
+        //public List<GraphPoint> points = new List<GraphPoint>();
+        ConcurrentDictionary<double, double> points = new ConcurrentDictionary<double, double>();
+        public List<GraphPoint> graphPoints = new List<GraphPoint>();
+
+        public Evaluator()
+        {
+            points.Clear();
+        }
+
         public Evaluator(Queue<Token> tokens)
         {
             this.tokens = tokens;
         }
 
-      public static void Parsing(string expression, double x, ConcurrentDictionary<double, double> points)
+      public void Parsing(string expression, double x/*, ConcurrentDictionary<double, double> points*/)
         {
-            Parser p = new Parser();
+            Parser parser = new Parser();
             //p.Parse("x = " + i.ToString());
             expression = expression.Replace("x", x.ToString("F2"));
-            double y = Math.Round(Convert.ToDouble(p.Parse(expression)), 2);
+            double y = Math.Round(Convert.ToDouble(parser.Parse(expression)), 2);
             points.TryAdd(x, y);
         }
 
-       public static List<GraphPoint> Evaluate(decimal xmin, decimal xmax, decimal steps, string expression)
+        public async Task RunTasks(decimal xmin, decimal xmax, decimal steps, string expression)
+        {
+            var tasksList = new List<Task>();   
+            for(decimal i = xmin; i <= xmax; i = i + steps)
+            {
+                string exp = expression;
+                var runTask = Task.Run(() => Parsing(exp, (double)i));
+                tasksList.Add(runTask);
+            }
+            await Task.WhenAll(tasksList);
+        }
+
+        public async void EvaluateParallel(decimal xmin, decimal xmax, decimal steps, string expression)
+        {
+            await RunTasks(xmin, xmax, steps, expression);
+            
+           
+            foreach (var item in points.OrderBy(x => x.Key))
+            {
+                graphPoints.Add(new GraphPoint(item.Key, item.Value));
+            }
+         //   return graphPoints;
+        }
+
+        public static List<GraphPoint> Evaluate(decimal xmin, decimal xmax, decimal steps, string expression)
         {            
             List<GraphPoint> graphPoints = new List<GraphPoint>();
             ConcurrentDictionary<double, double> points = new ConcurrentDictionary<double, double>();
             double y;
             Parser p = new Parser();
+            List<Task> list = new List<Task>();
             for (decimal i=xmin; i<=xmax; i = i + steps)
             {
                 string exp = expression;
                 double x = Math.Round( (double)i, 2);
                 //ParameterizedThreadStart pts = new ParameterizedThreadStart(Parsing);
-                Thread th = new Thread(pts => Parsing(exp, x, points));
-                th.Start();
+
+//                Thread th = new Thread(pts => Parsing(exp, x));
+  //              th.Start();
+    //            th.Join();
                 //th.Start(exp, x, points);
+
+
                 //Task<double> task = Task<double>.Factory.StartNew(() =>
                 //{
                 //    double result = Parsing(expression.Replace("x", tmp.ToString()));
-                //        return result;
+                //    return result;
                 //});
                 //points.Add(new GraphPoint((double)i, task.Result));
 

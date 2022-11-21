@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections;
+using System.Collections.Concurrent;
 
 namespace MatCom.Interpreter.Scanner
 {
@@ -15,34 +17,44 @@ namespace MatCom.Interpreter.Scanner
             this.tokens = tokens;
         }
 
-      public static void Parsing(decimal i, string expression, List<GraphPoint> points)
+      public static void Parsing(string expression, double x, ConcurrentDictionary<double, double> points)
         {
             Parser p = new Parser();
             //p.Parse("x = " + i.ToString());
-            double y = Convert.ToDouble(p.Parse(expression.Replace("x", i.ToString())));
-            points.Add(new GraphPoint((double)i, y));
+            expression = expression.Replace("x", x.ToString("F2"));
+            double y = Math.Round(Convert.ToDouble(p.Parse(expression)), 2);
+            points.TryAdd(x, y);
         }
 
        public static List<GraphPoint> Evaluate(decimal xmin, decimal xmax, decimal steps, string expression)
-        {
-            
-            List<GraphPoint> points = new List<GraphPoint>();
+        {            
+            List<GraphPoint> graphPoints = new List<GraphPoint>();
+            ConcurrentDictionary<double, double> points = new ConcurrentDictionary<double, double>();
             double y;
             Parser p = new Parser();
-            //Parallel.For(xmin, xmax, index =>
-            //{
-            //    p.Parse("x = " + index.ToString());
-            //    y = Convert.ToDouble(p.Parse(expression));
-            //    points.Add(new GraphPoint((double)index, y));
-            //});
             for (decimal i=xmin; i<=xmax; i = i + steps)
             {
-              //  p = new Parser();
-                //p.Parse("x = " + i.ToString());
-                y = Convert.ToDouble(p.Parse(expression.Replace("x", i.ToString())));
-                points.Add(new GraphPoint((double)i, y));
+                string exp = expression;
+                double x = Math.Round( (double)i, 2);
+                //ParameterizedThreadStart pts = new ParameterizedThreadStart(Parsing);
+                Thread th = new Thread(pts => Parsing(exp, x, points));
+                th.Start();
+                //th.Start(exp, x, points);
+                //Task<double> task = Task<double>.Factory.StartNew(() =>
+                //{
+                //    double result = Parsing(expression.Replace("x", tmp.ToString()));
+                //        return result;
+                //});
+                //points.Add(new GraphPoint((double)i, task.Result));
+
+                /*  y = Convert.ToDouble(p.Parse(expression.Replace("x", i.ToString())));
+                  points.Add(new GraphPoint((double)i, y));*/
             }
-            return points;
+            foreach(var item in points.OrderBy(x=>x.Key))
+            {
+                graphPoints.Add(new GraphPoint(item.Key, item.Value));
+            }
+            return graphPoints;
        /*     if(this.tokens != null && this.tokens.Count > 0)
             {
                 Stack<double> stack = new Stack<double>();

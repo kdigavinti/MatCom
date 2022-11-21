@@ -32,7 +32,7 @@ namespace MatCom.Interpreter.Scanner
 
         public string Parse(string text)
         {
-            Lexer lexer = new Lexer(text);
+           Lexer lexer = new Lexer(text);
             _currentPosition = 0;
             Tokens = lexer.Tokenize();
             foreach (Token token in Tokens)
@@ -143,6 +143,10 @@ namespace MatCom.Interpreter.Scanner
                 case TokenType.Unary:
                     factor = new ASTNumericLeaf(Convert.ToDouble(_currToken.value));
                     NextToken();
+                    break;
+                case TokenType.Operator:
+                    NextToken();
+                    factor = Expression();
                     break;
                 case TokenType.Identifier:
                     object identifierValue = _environment.getValue(_currToken.value);

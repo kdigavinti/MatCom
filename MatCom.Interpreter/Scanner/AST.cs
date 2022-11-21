@@ -17,7 +17,7 @@ namespace MatCom.Interpreter.Scanner
         
         public ASTNumericLeaf(double value)
         {
-            this._value = value;
+            this._value = Math.Round(value, 2);
         }
 
         public override object Eval()
@@ -27,7 +27,7 @@ namespace MatCom.Interpreter.Scanner
 
         public override string ToString()
         {
-            return this._value.ToString();
+            return this._value.ToString("F2");
         }
     }
 

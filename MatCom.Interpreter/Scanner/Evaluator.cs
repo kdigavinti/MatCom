@@ -39,6 +39,7 @@ namespace MatCom.Interpreter.Scanner
                 //ParameterizedThreadStart pts = new ParameterizedThreadStart(Parsing);
                 Thread th = new Thread(pts => Parsing(exp, x, points));
                 th.Start();
+                th.Join();
                 //th.Start(exp, x, points);
                 //Task<double> task = Task<double>.Factory.StartNew(() =>
                 //{

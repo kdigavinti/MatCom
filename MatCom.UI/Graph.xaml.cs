@@ -183,6 +183,7 @@ namespace MatCom.UI
 
         public List<GraphPoint> CalculatePoints(string function)
         {
+            List<double> xPoints = new List<double>();
             double x = _xOriginalMin;
             double transformX = 0;
             while (x <= _xOriginalMax)
@@ -193,10 +194,35 @@ namespace MatCom.UI
                 {
                     _xMin = (x < _xMin) ? x : _xMin;
                     _xMax = (x > _xMax) ? x : _xMax;
+                    xPoints.Add(x);
                 }
                 x = x + _stepsToCalculatePoints;
             }
-            List<GraphPoint> graphPoints = Evaluator.Evaluate((decimal)_xMin, (decimal)_xMax, (decimal)_stepsToCalculatePoints, _expression);
+
+            ExpressionValues expValues = _expressionValues.Where(i => i.Expression == function).FirstOrDefault();
+            List<GraphPoint> graphPoints;
+            if (expValues == null)
+            {                
+                graphPoints = Evaluator.Evaluate((decimal)_xMin, (decimal)_xMax, (decimal)_stepsToCalculatePoints, _expression);
+                expValues = new ExpressionValues()
+                {
+                    Expression = _expression,
+                    GraphPoints = graphPoints
+                };
+                _expressionValues.Add(expValues);
+                expValues.GraphPoints.OrderBy(i => i.X);
+            }
+            else
+            {
+                List<double> xPointsToEvaluate = xPoints.Where(x => !expValues.GraphPoints.Any(pt => pt.X == x)).ToList();
+                Evaluator eval = new Evaluator();
+                eval.Evaluate(xPointsToEvaluate, _expression);
+                graphPoints = eval.graphPoints;
+                expValues.GraphPoints.AddRange(graphPoints);
+                expValues.GraphPoints = expValues.GraphPoints.DistinctBy(i=>i.X).OrderBy(j => j.X).ToList();
+                graphPoints = expValues.GraphPoints;
+            }
+
             return graphPoints;
 
             /*double x = _xOriginalMin;
@@ -631,33 +657,11 @@ namespace MatCom.UI
                 if (this.ActualWidth > 0 && this.ActualHeight > 0)
                 {
                     chartCanvas.Children.Clear();
-                    DawGridLines();                    
+                    DawGridLines();
+                    
                     if (!string.IsNullOrEmpty(_expression))
                     {
-                        ExpressionValues expValues = _expressionValues.Where(i => i.Expression == _expression).FirstOrDefault();
-                        List<GraphPoint> graphPoints;
-                        if (expValues == null)
-                        {
-                           
-                            graphPoints = CalculatePoints(_expression);
-                            expValues = new ExpressionValues()
-                            {
-                                Expression = _expression,
-                                GraphPoints = graphPoints
-                            };
-                            _expressionValues.Add(expValues);
-                            expValues.GraphPoints.OrderBy(i => i.X);
-                        }
-                        else
-                        {
-                            //foreach(GraphPoint point in expValues.GraphPoints)
-                            //{
-                            //    expValues.GraphPoints.Add(point);
-                            //}
-                            expValues.GraphPoints = expValues.GraphPoints.OrderBy(i => i.X).ToList();
-                            graphPoints = expValues.GraphPoints;
-                        }
-
+                        List<GraphPoint> graphPoints = CalculatePoints(_expression);                        
                         PlotCurve(graphPoints, Brushes.Blue);
                     }
                     

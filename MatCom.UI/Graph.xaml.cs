@@ -46,17 +46,23 @@ namespace MatCom.UI
         }
 
         private void BtnZoomIn_Click(object sender, RoutedEventArgs e)
-        {            
-            _zoomFactor = _zoomFactor * 0.5;
-            _steps = ((_steps*5).ToString().Contains("5")) ? _steps * 0.4 : _steps * 0.5 ;
-            _stepsToCalculatePoints = (_stepsToCalculatePoints >= 0.01) ? _stepsToCalculatePoints * 0.5 : _stepsToCalculatePoints;
-            PlotGraph();
+        {      
+            double newStep = ((_steps * 5).ToString().Contains("5")) ? _steps * 0.4 : _steps * 0.5;
+            if (newStep >= 0.001)
+            {
+                _zoomFactor = _zoomFactor * 0.5;
+                _steps = newStep;
+                _stepsToCalculatePoints = (_stepsToCalculatePoints >= 0.01) ? _stepsToCalculatePoints * 0.5 : _stepsToCalculatePoints;
+                PlotGraph();
+            }                
         }
 
         private void BtnZoomOut_Click(object sender, RoutedEventArgs e)
         {            
             _zoomFactor = _zoomFactor * 2;
-            _steps = ((_steps * 5).ToString().Contains("2")) ? _steps * 2.5 : _steps * 2;
+            double labelStep = _steps * 5;
+            labelStep = Math.Truncate(labelStep * 1000) / 1000; ;
+            _steps = (labelStep >=0 && labelStep.ToString().Contains("2")) ? _steps * 2.5 : _steps * 2;
             PlotGraph();
         }
 
@@ -156,7 +162,8 @@ namespace MatCom.UI
             double transformX = 0;
             while (x <= _xOriginalMax)
             {
-                transformX = _origin.X + (x * _xAxisLinesGap / (_zoomFactor * _steps));
+                //transformX = _origin.X + (x * _xAxisLinesGap / (_zoomFactor * _steps));
+                transformX = _origin.X + (x * _xAxisLinesGap / (_steps));
                 if (0 <= transformX && transformX <= _canvasWidth)
                 {
                     _xMin = (x < _xMin) ? x : _xMin;
@@ -256,7 +263,7 @@ namespace MatCom.UI
 
                     if (idx != 0 && idx % 5 == 0)
                     {
-                        axisLabels.Add(new AxisLabel(_origin.X, y, "-" + (_steps * idx).ToString(), AxisType.YAxis));
+                        axisLabels.Add(new AxisLabel(_origin.X, y, "-" + FormatLabel(_steps * idx), AxisType.YAxis));
 
                     }
                     idx++;
@@ -288,7 +295,7 @@ namespace MatCom.UI
                     chartCanvas.Children.Add(xAxisLine);
                     if (idx != 0 && idx % 5 == 0)
                     {
-                        axisLabels.Add(new AxisLabel(_origin.X, y, (_steps * idx).ToString(), AxisType.YAxis));
+                        axisLabels.Add(new AxisLabel(_origin.X, y, FormatLabel(_steps * idx), AxisType.YAxis));
 
                     }
                     idx++;
@@ -322,7 +329,7 @@ namespace MatCom.UI
                     chartCanvas.Children.Add(yAxisLine);
                     if (idx != 0 && idx % 5 == 0)
                     {
-                        axisLabels.Add(new AxisLabel(x, _origin.Y, (_steps * idx).ToString(), AxisType.XAxis));
+                        axisLabels.Add(new AxisLabel(x, _origin.Y, FormatLabel(_steps * idx), AxisType.XAxis));
 
                     }
                     idx++;
@@ -355,7 +362,7 @@ namespace MatCom.UI
                     chartCanvas.Children.Add(yAxisLine);
                     if (idx != 0 && idx % 5 == 0)
                     {
-                        axisLabels.Add(new AxisLabel(x, _origin.Y, "-" + (_steps*idx).ToString(), AxisType.XAxis));
+                        axisLabels.Add(new AxisLabel(x, _origin.Y, "-" + FormatLabel(_steps*idx), AxisType.XAxis));
 
                     }
                     idx++;
@@ -370,10 +377,17 @@ namespace MatCom.UI
             AddAxisLabels(axisLabels);
         }
 
+        private string FormatLabel(double val)
+        {
+            return val.ToString("N3").TrimEnd('0').TrimEnd('.');
+        }
+
         private void AddAxisLabels(List<AxisLabel> axisLabels)
         {
             for (int i = 0; i < axisLabels.Count; i++)
             {
+                //double x = Math.Truncate(axisLabels[i].X * 1000) / 1000;
+                //double y = Math.Truncate(axisLabels[i].Y * 1000) / 1000;
                 AddtextBlock(axisLabels[i].X, axisLabels[i].Y, axisLabels[i].Label, axisLabels[i].Axis);
             }
         }

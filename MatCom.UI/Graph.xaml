@@ -16,6 +16,8 @@
                 <StackPanel Orientation="Horizontal">
                     <Button Content="+" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="30" Click="BtnZoomIn_Click"  Margin="10,10,0,0" Visibility="Visible" Name="btnZoomIn"/>
                     <Button Content="-" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="30" Click="BtnZoomOut_Click" Margin="10,10,0,0" Visibility="Visible" Name="btnZoomOut"/>
+                    <Button Content="Fit" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="30" Click="BtnFit_Click" Margin="10,10,0,0" Visibility="Visible" Name="btnFit"/>
+
                     <Button Content="Left" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Click="BtnLeftPan_Click"  Margin="10,10,0,0" Visibility="Visible" Name="btnLeftPan"/>
                     <Button Content="Right" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Click="BtnRightPan_Click" Margin="10,10,0,0" Visibility="Visible" Name="btnRightPan"/>
                 </StackPanel>

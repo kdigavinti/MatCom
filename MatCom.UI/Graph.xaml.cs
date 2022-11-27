@@ -181,7 +181,7 @@ namespace MatCom.UI
         }
 
 
-        public List<GraphPoint> CalculatePoints(string function)
+        public async Task<List<GraphPoint>> CalculatePoints(string function)
         {
             List<double> xPoints = new List<double>();
             double x = _xOriginalMin;
@@ -201,9 +201,12 @@ namespace MatCom.UI
 
             ExpressionValues expValues = _expressionValues.Where(i => i.Expression == function).FirstOrDefault();
             List<GraphPoint> graphPoints;
+            Evaluator eval = new Evaluator();
             if (expValues == null)
-            {                
-                graphPoints = Evaluator.Evaluate((decimal)_xMin, (decimal)_xMax, (decimal)_stepsToCalculatePoints, _expression);
+            {
+                //graphPoints = Evaluator.Evaluate((decimal)_xMin, (decimal)_xMax, (decimal)_stepsToCalculatePoints, _expression);
+                await eval.Evaluate(xPoints, _expression);
+                graphPoints = eval.GraphPoints;
                 expValues = new ExpressionValues()
                 {
                     Expression = _expression,
@@ -214,10 +217,9 @@ namespace MatCom.UI
             }
             else
             {
-                List<double> xPointsToEvaluate = xPoints.Where(x => !expValues.GraphPoints.Any(pt => pt.X == x)).ToList();
-                Evaluator eval = new Evaluator();
-                eval.Evaluate(xPointsToEvaluate, _expression);
-                graphPoints = eval.graphPoints;
+                List<double> xPointsToEvaluate = xPoints.Where(x => !expValues.GraphPoints.Any(pt => pt.X == x)).ToList();                
+                await eval.Evaluate(xPointsToEvaluate, _expression);
+                graphPoints = eval.GraphPoints;
                 expValues.GraphPoints.AddRange(graphPoints);
                 expValues.GraphPoints = expValues.GraphPoints.DistinctBy(i=>i.X).OrderBy(j => j.X).ToList();
                 graphPoints = expValues.GraphPoints;
@@ -650,7 +652,7 @@ namespace MatCom.UI
             chartCanvas.Children.Add(textBlock);            
         }
 
-        private void PlotGraph()
+        private async void PlotGraph()
         {
             try
             {
@@ -661,7 +663,7 @@ namespace MatCom.UI
                     
                     if (!string.IsNullOrEmpty(_expression))
                     {
-                        List<GraphPoint> graphPoints = CalculatePoints(_expression);                        
+                        List<GraphPoint> graphPoints =await CalculatePoints(_expression);                        
                         PlotCurve(graphPoints, Brushes.Blue);
                     }
                     
@@ -674,17 +676,17 @@ namespace MatCom.UI
             }
         }
 
-        public void PlotF1()
-        {
-            List<GraphPoint> values = CalculatePoints("F1");
-            PlotCurve(values, Brushes.Blue);
-        }
+        //public void PlotF1()
+        //{
+        //    List<GraphPoint> values = CalculatePoints("F1");
+        //    PlotCurve(values, Brushes.Blue);
+        //}
 
-        public void PlotF2()
-        {
-            List<GraphPoint> values = CalculatePoints("F2");
-            PlotCurve(values, Brushes.Red);
-        }
+        //public void PlotF2()
+        //{
+        //    List<GraphPoint> values = CalculatePoints("F2");
+        //    PlotCurve(values, Brushes.Red);
+        //}
 
         private void PlotCurve(List<GraphPoint> values, System.Windows.Media.SolidColorBrush color)
         {

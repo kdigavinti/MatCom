@@ -46,6 +46,18 @@ namespace MatCom.Interpreter.Scanner
             await Task.WhenAll(tasksList);
         }
 
+        public async Task RunTasks(List<double> points, string expression)
+        {
+            var tasksList = new List<Task>();
+            for (int i = 0;i<points.Count;i++)
+            {
+                string exp = expression;
+                var runTask = Task.Run(() => Parsing(exp, points[i]));
+                tasksList.Add(runTask);
+            }
+            await Task.WhenAll(tasksList);
+        }
+
         public async void EvaluateParallel(decimal xmin, decimal xmax, decimal steps, string expression)
         {
             await RunTasks(xmin, xmax, steps, expression);
@@ -56,6 +68,11 @@ namespace MatCom.Interpreter.Scanner
                 graphPoints.Add(new GraphPoint(item.Key, item.Value));
             }
          //   return graphPoints;
+        }
+
+        public async void Evaluate(List<double> points, string expression)
+        {
+            await RunTasks(points, expression);
         }
 
         public static List<GraphPoint> Evaluate(decimal xmin, decimal xmax, decimal steps, string expression)

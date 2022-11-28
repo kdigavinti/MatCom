@@ -29,8 +29,9 @@ namespace MatCom.Interpreter.Scanner
         {
             Parser parser = new Parser();
             //p.Parse("x = " + i.ToString());
-            expression = expression.Replace("x", x.ToString("F4"));
-            double y = Math.Round(Convert.ToDouble(parser.Parse(expression)), 4);
+            expression = expression.Replace("x", x.ToString());
+            //double y = Math.Round(Convert.ToDouble(parser.Parse(expression)), 4);
+            double y = Convert.ToDouble(parser.Parse(expression));
             Points.TryAdd(x, y);
         }
 

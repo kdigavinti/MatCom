@@ -35,10 +35,10 @@ namespace MatCom.Interpreter.Scanner
            Lexer lexer = new Lexer(text);
             _currentPosition = 0;
             Tokens = lexer.Tokenize();
-            foreach (Token token in Tokens)
-            {
-                System.Diagnostics.Debug.WriteLine("{0, -25} {1, -18}", token.type, token.value);
-            }
+            //foreach (Token token in Tokens)
+            //{
+            //    System.Diagnostics.Debug.WriteLine("{0, -25} {1, -18}", token.type, token.value);
+            //}
             NextToken();
             AST? statement = Statement();
             ExpectToken(TokenType.EOF);

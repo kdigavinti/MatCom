@@ -30,7 +30,7 @@ namespace MatCom.UI
         double _xMin = 0, _xMax = 0;
         double _zoomFactor = 1;
         double _steps = 1;
-        double _stepsToCalculatePoints = 0.2;
+        double _stepsToCalculatePoints = 0.1;
         
         System.Windows.Point _origin;
 
@@ -64,7 +64,9 @@ namespace MatCom.UI
                 
                 _zoomFactor = _zoomFactor * 0.5;
                 _steps = newStep;
+                if (_steps == 1) _stepsToCalculatePoints = 0.2;
                 _stepsToCalculatePoints = (_stepsToCalculatePoints >= 0.01) ? _stepsToCalculatePoints * 0.5 : _stepsToCalculatePoints;
+                //CalStepsToCalculatePoints();
                 PlotGraph();
             }                
         }
@@ -75,10 +77,44 @@ namespace MatCom.UI
             double labelStep = _steps * 5;
             labelStep = Math.Truncate(labelStep * 1000) / 1000; ;
             _steps = (labelStep >=0 && labelStep.ToString().Contains("2")) ? _steps * 2.5 : _steps * 2;
+            if (_steps == 1) _stepsToCalculatePoints = 0.2;
+            _stepsToCalculatePoints = (_steps >= 1) ? _stepsToCalculatePoints * 10 : _stepsToCalculatePoints;
+            //CalStepsToCalculatePoints();
             PlotGraph();
         }
 
+        //private void CalStepsToCalculatePoints()
+        //{
+        //    if(_steps == 0.001)
+        //    {
+        //        _stepsToCalculatePoints = 0.0002;
+        //    }
+        //    else if (_steps <= 0.01)
+        //    {
+        //        _stepsToCalculatePoints = 0.002;
+        //    }
+        //    else if (_steps <= 0.1)
+        //    {
+        //        _stepsToCalculatePoints = 0.02;
+        //    }
+        //    else if (_steps <= 0.4)
+        //    {
+        //        _stepsToCalculatePoints = 0.1;
+        //    }
+        //    else if (_steps <= 1)
+        //    {
+        //        _stepsToCalculatePoints = 0.2;
+        //    }
+        //    else
+        //        _stepsToCalculatePoints = _stepsToCalculatePoints * 10;
+        //}
+
         private void BtnFit_Click(object sender, RoutedEventArgs e)
+        {
+            ResetValues();
+            PlotGraph();
+        }
+        private void ResetValues()
         {
             _canvasWidth = 0.0; _canvasHeight = 0.0;
             _xAxisLinesGap = 20; _yAxisLinesGap = 20;
@@ -86,11 +122,9 @@ namespace MatCom.UI
             _xMin = 0; _xMax = 0;
             _zoomFactor = 1;
             _steps = 1;
-            _stepsToCalculatePoints = 0.2;
+            _stepsToCalculatePoints = 0.1;
             _fitToScreen = true;
-            PlotGraph();
         }
-
         private void BtnLeftPan_Click(object sender, RoutedEventArgs e)
         {
 
@@ -108,6 +142,7 @@ namespace MatCom.UI
                 if (!string.IsNullOrEmpty(txtF1.Text.Trim()))
                 {
                     _expression = txtF1.Text.Trim();
+                    ResetValues();
                     PlotGraph();
                 }
 
@@ -184,19 +219,19 @@ namespace MatCom.UI
         public async Task<List<GraphPoint>> CalculatePoints(string function)
         {
             List<double> xPoints = new List<double>();
-            double x = _xOriginalMin;
-            double transformX = 0;
-            while (x <= _xOriginalMax)
+            decimal x = (decimal) _xOriginalMin;
+            decimal transformX = 0;
+            while (x <= (decimal)_xOriginalMax)
             {
                 //transformX = _origin.X + (x * _xAxisLinesGap / (_zoomFactor * _steps));
-                transformX = _origin.X + (x * _xAxisLinesGap / (_steps));
-                if (0 <= transformX && transformX <= _canvasWidth)
+                transformX = (decimal)_origin.X + (x * (decimal)_xAxisLinesGap / ((decimal)_steps));
+                if (0 <= transformX && transformX <= (decimal)_canvasWidth)
                 {
-                    _xMin = (x < _xMin) ? x : _xMin;
-                    _xMax = (x > _xMax) ? x : _xMax;
-                    xPoints.Add(x);
+                    _xMin = (x < (decimal)_xMin) ? (double)x : _xMin;
+                    _xMax = (x > (decimal)_xMax) ? (double)x : _xMax;
+                    xPoints.Add((double)x);
                 }
-                x = x + _stepsToCalculatePoints;
+                x = x + (decimal)_stepsToCalculatePoints;
             }
 
             ExpressionValues expValues = _expressionValues.Where(i => i.Expression == function).FirstOrDefault();

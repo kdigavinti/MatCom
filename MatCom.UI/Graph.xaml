@@ -36,8 +36,9 @@
 
             </StackPanel>
 
-            <Canvas x:Name="chartCanvas" MouseWheel="ChartCanvas_MouseWheel" MouseLeftButtonDown="ChartCanvas_MouseLeftButtonDown" MouseLeftButtonUp="ChartCanvas_MouseLeftButtonUp"
-                Background="White" Margin="0,0,0,0" ClipToBounds="True">
+            <Canvas x:Name="chartCanvas" MouseWheel="ChartCanvas_MouseWheel" Background="White" Margin="0,0,0,0" ClipToBounds="True">
+                    <!--MouseLeftButtonDown="ChartCanvas_MouseLeftButtonDown" MouseLeftButtonUp="ChartCanvas_MouseLeftButtonUp" MouseMove="ChartCanvas_MouseMove"-->
+                
                 <Canvas.RenderTransform>
                     <MatrixTransform x:Name="mt"/>
                 </Canvas.RenderTransform>

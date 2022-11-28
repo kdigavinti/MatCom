@@ -52,7 +52,17 @@ namespace MatCom.UI
         }
 
         private void BtnZoomIn_Click(object sender, RoutedEventArgs e)
-        {      
+        {
+            OnZoomInClick();
+        }
+
+        private void BtnZoomOut_Click(object sender, RoutedEventArgs e)
+        {
+            OnZoomOutClick();
+        }
+
+        private void OnZoomInClick()
+        {
             double newStep = ((_steps * 5).ToString().Contains("5")) ? _steps * 0.4 : _steps * 0.5;
             if (newStep >= 0.001)
             {
@@ -61,26 +71,36 @@ namespace MatCom.UI
                 //    _xAxisLinesGap = _xAxisLinesGap + 20;
                 //    _yAxisLinesGap = _yAxisLinesGap + 20;
                 //}
-                
+
                 _zoomFactor = _zoomFactor * 0.5;
                 _steps = newStep;
                 if (_steps == 1) _stepsToCalculatePoints = 0.2;
                 _stepsToCalculatePoints = (_stepsToCalculatePoints >= 0.01) ? _stepsToCalculatePoints * 0.5 : _stepsToCalculatePoints;
-                //CalStepsToCalculatePoints();
                 PlotGraph();
-            }                
+            }
         }
 
-        private void BtnZoomOut_Click(object sender, RoutedEventArgs e)
-        {            
+        private void OnZoomOutClick()
+        {
             _zoomFactor = _zoomFactor * 2;
             double labelStep = _steps * 5;
             labelStep = Math.Truncate(labelStep * 1000) / 1000; ;
-            _steps = (labelStep >=0 && labelStep.ToString().Contains("2")) ? _steps * 2.5 : _steps * 2;
+            _steps = (labelStep >= 0 && labelStep.ToString().Contains("2")) ? _steps * 2.5 : _steps * 2;
             if (_steps == 1) _stepsToCalculatePoints = 0.2;
             _stepsToCalculatePoints = (_steps >= 1) ? _stepsToCalculatePoints * 10 : _stepsToCalculatePoints;
-            //CalStepsToCalculatePoints();
             PlotGraph();
+        }
+
+        private void ChartCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (e.Delta > 0)
+            {
+                OnZoomInClick();
+            }
+            else
+            {
+                OnZoomOutClick();
+            }
         }
 
         //private void CalStepsToCalculatePoints()
@@ -149,33 +169,44 @@ namespace MatCom.UI
             }
         }
 
-        private void ChartCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
-        {   
-            double zoomFactor = 0;
-            if (e.Delta > 0)
-            {
-                zoomFactor = zoomFactor * 2;
+        
 
-            }
-            else
-            {
-                zoomFactor = zoomFactor * 0.5;
-                _stepsToCalculatePoints = (_stepsToCalculatePoints >= 0.01) ? _stepsToCalculatePoints * 0.5 : _stepsToCalculatePoints;
-
-            }
-
-            PlotGraph();
-        }
-
-        private void ChartCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        /*private void ChartCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-
+            base.OnMouseLeftButtonDown(e);
+            CaptureMouse();
+            _start = e.GetPosition(chartCanvas);
+            _isDragged = true;
         }
 
         private void ChartCanvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-
+            base.OnMouseLeftButtonUp(e);
+            ReleaseMouseCapture();
+            _isDragged = false;
         }
+        private void ChartCanvas_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (_isDragged == false)
+                return;
+
+            base.OnMouseMove(e);
+            if (e.LeftButton == MouseButtonState.Pressed && IsMouseCaptured)
+            {
+
+                var pos = e.GetPosition(chartCanvas);
+                _last = pos;
+                _fitToScreen = false;
+
+                System.Windows.Point newOrigin = new System.Windows.Point(_origin.X, _origin.Y);
+
+                newOrigin.X = _origin.X + (_last.X - _start.X) * 0.05;
+                newOrigin.Y = _origin.Y + (_last.Y - _start.Y) * 0.05;
+
+                _origin = newOrigin;
+                PlotGraph();
+            }
+        }*/
         protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
         {
             base.OnMouseLeftButtonDown(e);
@@ -199,7 +230,6 @@ namespace MatCom.UI
             base.OnMouseMove(e);
             if (e.LeftButton == MouseButtonState.Pressed && IsMouseCaptured)
             {
-
                 var pos = e.GetPosition(chartCanvas);
                 _last = pos;
                 _fitToScreen = false;
@@ -259,70 +289,20 @@ namespace MatCom.UI
                 expValues.GraphPoints = expValues.GraphPoints.DistinctBy(i=>i.X).OrderBy(j => j.X).ToList();
                 graphPoints = expValues.GraphPoints;
             }
-
             return graphPoints;
-
-            /*double x = _xOriginalMin;
-
-            if (function == "F1")
-            {
-                double transformX = 0;
-                while (x <= _xOriginalMax)
-                {
-                    transformX = _origin.X + (x * _xAxisLinesGap / (_zoomFactor * _steps));
-                    if (0 <= transformX && transformX <= _canvasWidth)
-                    {
-                        _xMin = (x < _xMin) ? x : _xMin;
-                        _xMax = (x > _xMax) ? x : _xMax;
-                    }
-                    x = x + _stepsToCalculatePoints;
-                }
-                x = _xMin;
-                while (x <= _xMax)
-                {
-                    //double y = (x - 2) * ((x + 1)*(x+1)) * (x - 4);
-                    double y = x * x;
-                    graphPoints.Add(new GraphPoint(x, y));
-                    x = x + _stepsToCalculatePoints;
-                }
-            }
-
-            else if (function == "F2")
-            {
-                //while (x <= xMax)
-                //{
-                //    double y = x;
-                //    //Value val = new Value(x, y);
-                //    values.Add(new Value(x, y));
-                //    x = x + stepsToCalculatePoints;
-                //    yMin = (y < yMin) ? y : yMin;
-                //    yMax = (y > yMax) ? y : yMax;
-                //}
-
-                while (x <= _xOriginalMax)
-                {
-                    double xRad = x * Math.PI / 180;
-                    double y = Math.Sin(xRad);
-                    //Value val = new Value(x, y);
-                    graphPoints.Add(new GraphPoint(xRad, y));
-                    x = x + _steps;
-
-                }
-            }
-            return graphPoints;*/
         }
 
         private void DawGridLines()
         {
             List<AxisLabel> axisLabels = new List<AxisLabel>();            
-            _canvasWidth = chartCanvas.ActualWidth;
-            _canvasHeight = chartCanvas.ActualHeight;
+            _canvasWidth = chartCanvas.ActualWidth + 100; //allow margin
+            _canvasHeight = chartCanvas.ActualHeight + 100; //allow margin
 
             //draw origin lines
             if (_fitToScreen)
             {
-                _origin.X = (_canvasWidth / 2);
-                _origin.Y = (_canvasHeight / 2);
+                _origin.X = (chartCanvas.ActualWidth / 2);
+                _origin.Y = (chartCanvas.ActualHeight / 2);
             }
             //Stopwatch stopwatch = new Stopwatch();
             //stopwatch.Start();
@@ -348,145 +328,11 @@ namespace MatCom.UI
             //DrawPositiveYGridLines();
             //DrawNegativeYGridLines();
 
-            //double y = _origin.Y;
-            //double x = _origin.X;
-            //Line xAxisLine, yAxisLine;
-
-            ////draw x-axis lines - below the origin
-            //int idx = 0;
-            //while (y <= _canvasHeight)
-            //{
-            //    if (0 <= y && y <= _canvasHeight)
-            //    {
-            //        xAxisLine = new Line()
-            //        {
-            //            X1 = 0,
-            //            Y1 = y,
-            //            X2 = _canvasWidth,
-            //            Y2 = y,
-            //            Stroke = (y == _origin.Y) ? Brushes.Black : Brushes.LightGray,
-            //            //Stroke = Brushes.LightGray,
-            //            StrokeThickness = (idx != 0 && idx % 5 == 0) ? 1.5 : 0.75,
-            //        };
-
-            //        chartCanvas.Children.Add(xAxisLine);
-
-            //        if (idx != 0 && idx % 5 == 0)
-            //        {
-            //            axisLabels.Add(new AxisLabel(_origin.X, y, "-" + FormatLabel(_steps * idx), AxisType.YAxis));
-
-            //        }
-            //        idx++;
-            //    }
-            //    y += _xAxisLinesGap;
-
-            //}
-
-            ////draw x-axis lines - above the origin
-
-            //y = _origin.Y;
-            //x = _origin.X;
-            //idx = 0;
-            //while (y >= 10)
-            //{
-            //    if (0 <= y && y <= _canvasHeight)
-            //    {
-            //        xAxisLine = new Line()
-            //        {
-            //            X1 = 0,
-            //            Y1 = y,
-            //            X2 = _canvasWidth,
-            //            Y2 = y,
-            //            Stroke = (y == _origin.Y) ? Brushes.Black : Brushes.LightGray,
-            //            //Stroke = Brushes.LightGray,
-            //            StrokeThickness = (idx != 0 && idx % 5 == 0) ? 1.5 : 0.75,
-            //        };
-
-            //        chartCanvas.Children.Add(xAxisLine);
-            //        if (idx != 0 && idx % 5 == 0)
-            //        {
-            //            axisLabels.Add(new AxisLabel(_origin.X, y, FormatLabel(_steps * idx), AxisType.YAxis));
-
-            //        }
-            //        idx++;
-            //    }
-
-            //    y = y - _xAxisLinesGap;
-
-            //}
-
-
-            ////draw y-axis lines - right to the origin
-
-            //y = _origin.Y;
-            //x = _origin.X;
-            //idx = 0;
-            //while (x <= _canvasWidth)
-            //{
-            //    if (0 <= x && x <= _canvasWidth)
-            //    {
-            //        yAxisLine = new Line()
-            //        {
-            //            X1 = x,
-            //            Y1 = 0,
-            //            X2 = x,
-            //            Y2 = _canvasHeight,
-            //            Stroke = (x == _origin.X) ? Brushes.Black : Brushes.LightGray,
-            //            //Stroke = Brushes.LightGray,
-            //            StrokeThickness = (idx != 0 && idx % 5 == 0) ? 1.5 : 0.75,
-            //        };
-
-            //        chartCanvas.Children.Add(yAxisLine);
-            //        if (idx != 0 && idx % 5 == 0)
-            //        {
-            //            axisLabels.Add(new AxisLabel(x, _origin.Y, FormatLabel(_steps * idx), AxisType.XAxis));
-
-            //        }
-            //        idx++;
-            //    }
-
-            //    x = x + _yAxisLinesGap;
-
-            //}
-
-            ////draw y-axis lines - left to the origin
-
-            //y = _origin.Y;
-            //x = _origin.X;
-            //idx = 0;
-            //while (x >= 10)
-            //{
-            //    if (0 <= x && x <= _canvasWidth)
-            //    {
-            //        yAxisLine = new Line()
-            //        {
-            //            X1 = x,
-            //            Y1 = 0,
-            //            X2 = x,
-            //            Y2 = _canvasHeight,
-            //            Stroke = (x == _origin.X) ? Brushes.Black : Brushes.LightGray,
-            //            //Stroke = Brushes.LightGray,
-            //            StrokeThickness = (idx != 0 && idx % 5 == 0) ? 1.5 : 0.75,
-            //        };
-
-            //        chartCanvas.Children.Add(yAxisLine);
-            //        if (idx != 0 && idx % 5 == 0)
-            //        {
-            //            axisLabels.Add(new AxisLabel(x, _origin.Y, "-" + FormatLabel(_steps * idx), AxisType.XAxis));
-
-            //        }
-            //        idx++;
-            //    }
-
-            //    x = x - _yAxisLinesGap;
-
-            //}
-
             axisLabels.Add(new AxisLabel(_origin.X, _origin.Y, "0", AxisType.Origin));
 
             AddAxisLabels(axisLabels);
             //stopwatch.Stop();
-            //MessageBox.Show(stopwatch.ElapsedMilliseconds.ToString());
+            //MessageBox.Show(stopwatch.ElapsedTicks.ToString());
         }
 
         ////draw x-axis lines - above the origin
@@ -494,11 +340,12 @@ namespace MatCom.UI
         {
             double y = _origin.Y;
             double x = _origin.X;
-            double idx = 0;
+            double idx = -1;
             List<AxisLabel> axisLabels = new List<AxisLabel>();
             Line xAxisLine;
             while (y >= 10)
             {
+                idx++;
                 if (0 <= y && y <= _canvasHeight)
                 {
                     xAxisLine = new Line()
@@ -517,7 +364,7 @@ namespace MatCom.UI
                         axisLabels.Add(new AxisLabel(_origin.X, y, FormatLabel(_steps * idx), AxisType.YAxis));
 
                     }
-                    idx++;
+                    
                 }
 
                 y = y - _xAxisLinesGap;
@@ -531,13 +378,13 @@ namespace MatCom.UI
         {
             double y = _origin.Y;
             double x = _origin.X;
-            double idx = 0;
+            double idx = -1;
             List<AxisLabel> axisLabels = new List<AxisLabel>();
             Line xAxisLine;
-
             
             while (y <= _canvasHeight)
             {
+                idx++;
                 if (0 <= y && y <= _canvasHeight)
                 {
                     xAxisLine = new Line()
@@ -556,12 +403,9 @@ namespace MatCom.UI
                     if (idx != 0 && idx % 5 == 0)
                     {
                         axisLabels.Add(new AxisLabel(_origin.X, y, "-" + FormatLabel(_steps * idx), AxisType.YAxis));
-
                     }
-                    idx++;
                 }
                 y += _xAxisLinesGap;
-
             }
             AddAxisLabels(axisLabels);
         }
@@ -571,14 +415,16 @@ namespace MatCom.UI
         {
             double y = _origin.Y;
             double x = _origin.X;
-            double idx = 0;
+            double idx = -1;
             List<AxisLabel> axisLabels = new List<AxisLabel>();
             Line yAxisLine;
           
             while (x <= _canvasWidth)
             {
+                idx++;
                 if (0 <= x && x <= _canvasWidth)
                 {
+                    _xOriginalMax = (idx > _xOriginalMax) ? idx : _xOriginalMax;
                     yAxisLine = new Line()
                     {
                         X1 = x,
@@ -595,14 +441,13 @@ namespace MatCom.UI
                     if (idx != 0 && idx % 5 == 0)
                     {
                         axisLabels.Add(new AxisLabel(x, _origin.Y, FormatLabel(_steps * idx), AxisType.XAxis));
-
-                    }
-                    idx++;
+                    }                    
                 }
 
                 x = x + _yAxisLinesGap;
 
             }
+            _xOriginalMax = _xOriginalMax + _steps * 10;
             AddAxisLabels(axisLabels);
         }
 
@@ -611,14 +456,17 @@ namespace MatCom.UI
         {
             double y = _origin.Y;
             double x = _origin.X;
-            double idx = 0;
+            double idx = -1; double negIdx = -1;
             List<AxisLabel> axisLabels = new List<AxisLabel>();
             Line yAxisLine;
 
             while (x >= 10)
             {
+                idx++;
+                negIdx = idx * -1;
                 if (0 <= x && x <= _canvasWidth)
                 {
+                    _xOriginalMin = (negIdx < _xOriginalMin) ? negIdx : _xOriginalMax;
                     yAxisLine = new Line()
                     {
                         X1 = x,
@@ -632,22 +480,20 @@ namespace MatCom.UI
                     chartCanvas.Children.Add(yAxisLine);                   
                     if (idx != 0 && idx % 5 == 0)
                     {
-                        axisLabels.Add(new AxisLabel(x, _origin.Y, "-" + FormatLabel(_steps * idx), AxisType.XAxis));
-
+                        axisLabels.Add(new AxisLabel(x, _origin.Y, FormatLabel(_steps * negIdx), AxisType.XAxis));
                     }
-                    idx++;
                 }
-
                 x = x - _yAxisLinesGap;
-
             }
             AddAxisLabels(axisLabels);
+            _xOriginalMin = _xOriginalMin - _steps * 20;
         }
 
         private string FormatLabel(double val)
         {
             return val.ToString("N3").TrimEnd('0').TrimEnd('.');
         }
+               
 
         private void AddAxisLabels(List<AxisLabel> axisLabels)
         {
@@ -701,8 +547,6 @@ namespace MatCom.UI
                         List<GraphPoint> graphPoints =await CalculatePoints(_expression);                        
                         PlotCurve(graphPoints, Brushes.Blue);
                     }
-                    
-                    //PlotF1();
                 }
             }
             catch (Exception)
@@ -710,18 +554,6 @@ namespace MatCom.UI
                 throw;
             }
         }
-
-        //public void PlotF1()
-        //{
-        //    List<GraphPoint> values = CalculatePoints("F1");
-        //    PlotCurve(values, Brushes.Blue);
-        //}
-
-        //public void PlotF2()
-        //{
-        //    List<GraphPoint> values = CalculatePoints("F2");
-        //    PlotCurve(values, Brushes.Red);
-        //}
 
         private void PlotCurve(List<GraphPoint> values, System.Windows.Media.SolidColorBrush color)
         {
@@ -740,7 +572,7 @@ namespace MatCom.UI
             DrawBezierCurve(points, color);
         }
 
-        private void DrawBezierCurve2(List<System.Windows.Point> points, System.Windows.Media.SolidColorBrush color)
+        /*private void DrawBezierCurve2(List<System.Windows.Point> points, System.Windows.Media.SolidColorBrush color)
         {
             if (points == null || (points != null && points.Count == 0)) return;
 
@@ -800,7 +632,7 @@ namespace MatCom.UI
 
             chartCanvas.Children.Add(path);
             Canvas.SetZIndex(path, 1);
-        }
+        }*/
 
         private void DrawBezierCurve(List<System.Windows.Point> points, System.Windows.Media.SolidColorBrush color)
         {
@@ -889,3 +721,137 @@ public class ExpressionValues
     public string Expression { get; set; }
     public List<GraphPoint> GraphPoints { get; set; }
 }
+
+/*double y = _origin.Y;
+double x = _origin.X;
+Line xAxisLine, yAxisLine;
+
+//draw x-axis lines - below the origin
+int idx = 0;
+while (y <= _canvasHeight)
+{
+    if (0 <= y && y <= _canvasHeight)
+    {
+        xAxisLine = new Line()
+        {
+            X1 = 0,
+            Y1 = y,
+            X2 = _canvasWidth,
+            Y2 = y,
+            Stroke = (y == _origin.Y) ? Brushes.Black : Brushes.LightGray,
+            //Stroke = Brushes.LightGray,
+            StrokeThickness = (idx != 0 && idx % 5 == 0) ? 1.5 : 0.75,
+        };
+
+        chartCanvas.Children.Add(xAxisLine);
+
+        if (idx != 0 && idx % 5 == 0)
+        {
+            axisLabels.Add(new AxisLabel(_origin.X, y, "-" + FormatLabel(_steps * idx), AxisType.YAxis));
+
+        }
+        idx++;
+    }
+    y += _xAxisLinesGap;
+
+}
+
+//draw x-axis lines - above the origin
+
+y = _origin.Y;
+x = _origin.X;
+idx = 0;
+while (y >= 10)
+{
+    if (0 <= y && y <= _canvasHeight)
+    {
+        xAxisLine = new Line()
+        {
+            X1 = 0,
+            Y1 = y,
+            X2 = _canvasWidth,
+            Y2 = y,
+            Stroke = (y == _origin.Y) ? Brushes.Black : Brushes.LightGray,
+            //Stroke = Brushes.LightGray,
+            StrokeThickness = (idx != 0 && idx % 5 == 0) ? 1.5 : 0.75,
+        };
+
+        chartCanvas.Children.Add(xAxisLine);
+        if (idx != 0 && idx % 5 == 0)
+        {
+            axisLabels.Add(new AxisLabel(_origin.X, y, FormatLabel(_steps * idx), AxisType.YAxis));
+
+        }
+        idx++;
+    }
+
+    y = y - _xAxisLinesGap;
+
+}
+
+
+//draw y-axis lines - right to the origin
+
+y = _origin.Y;
+x = _origin.X;
+idx = 0;
+while (x <= _canvasWidth)
+{
+    if (0 <= x && x <= _canvasWidth)
+    {
+        yAxisLine = new Line()
+        {
+            X1 = x,
+            Y1 = 0,
+            X2 = x,
+            Y2 = _canvasHeight,
+            Stroke = (x == _origin.X) ? Brushes.Black : Brushes.LightGray,
+            //Stroke = Brushes.LightGray,
+            StrokeThickness = (idx != 0 && idx % 5 == 0) ? 1.5 : 0.75,
+        };
+
+        chartCanvas.Children.Add(yAxisLine);
+        if (idx != 0 && idx % 5 == 0)
+        {
+            axisLabels.Add(new AxisLabel(x, _origin.Y, FormatLabel(_steps * idx), AxisType.XAxis));
+
+        }
+        idx++;
+    }
+
+    x = x + _yAxisLinesGap;
+
+}
+
+////draw y-axis lines - left to the origin
+
+y = _origin.Y;
+x = _origin.X;
+idx = 0;
+while (x >= 10)
+{
+    if (0 <= x && x <= _canvasWidth)
+    {
+        yAxisLine = new Line()
+        {
+            X1 = x,
+            Y1 = 0,
+            X2 = x,
+            Y2 = _canvasHeight,
+            Stroke = (x == _origin.X) ? Brushes.Black : Brushes.LightGray,
+            //Stroke = Brushes.LightGray,
+            StrokeThickness = (idx != 0 && idx % 5 == 0) ? 1.5 : 0.75,
+        };
+
+        chartCanvas.Children.Add(yAxisLine);
+        if (idx != 0 && idx % 5 == 0)
+        {
+            axisLabels.Add(new AxisLabel(x, _origin.Y, "-" + FormatLabel(_steps * idx), AxisType.XAxis));
+
+        }
+        idx++;
+    }
+
+    x = x - _yAxisLinesGap;
+
+}*/

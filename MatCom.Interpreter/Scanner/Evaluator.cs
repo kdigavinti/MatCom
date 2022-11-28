@@ -32,7 +32,8 @@ namespace MatCom.Interpreter.Scanner
             expression = expression.Replace("x", x.ToString());
             //double y = Math.Round(Convert.ToDouble(parser.Parse(expression)), 4);
             double y = Convert.ToDouble(parser.Parse(expression));
-            Points.TryAdd(x, y);
+            if(!Double.IsNaN(y))
+                Points.TryAdd(x, y);
         }
 
         public async Task RunTasks(decimal xmin, decimal xmax, decimal steps, string expression)

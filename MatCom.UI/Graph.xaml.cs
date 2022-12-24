@@ -489,6 +489,33 @@ namespace MatCom.UI
             _xOriginalMin = _xOriginalMin - _steps * 20;
         }
 
+        private void BtnZeroCrossing_Click(object sender, RoutedEventArgs e)
+        {
+            txtRoots.Text = "";
+            List<double> roots = new List<double>();
+            string value = "";
+            //for (double i = -5; i <= 5;)
+            //{
+            //    value = Evaluator.RootPolynomial(i, i+1.5, txtF1.Text.Trim());
+            //    if (value != "")
+            //    {
+            //        double root = Convert.ToDouble(value);
+            //        roots.Add(root);
+            //    }
+            //    i = i + 1.5;
+            //}
+            value = Evaluator.RootPolynomial(1, 2, txtF1.Text.Trim());
+
+            roots.ForEach(x =>
+            {
+                txtRoots.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    txtRoots.Text += x.ToString() + System.Environment.NewLine;
+                }));
+
+            });
+        }
+
         private string FormatLabel(double val)
         {
             return val.ToString("N3").TrimEnd('0').TrimEnd('.');

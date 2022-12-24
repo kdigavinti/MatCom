@@ -28,6 +28,14 @@
                     <TextBox FontSize="18" HorizontalAlignment="Center" Margin="10,10,10,10" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="230" KeyDown="TxtF1_KeyDown" Name="txtF1"/>
 
                 </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Zero Crossing" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="150" Click="BtnZeroCrossing_Click"  Margin="10,10,0,0" Visibility="Visible" Name="btnZeroCrossing"/>
+                   
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock HorizontalAlignment="Center" Name="txtRoots" Margin="10,10,0,0"/>
+                </StackPanel>
+                
                 <!--<StackPanel Orientation="Horizontal">
                     <Label VerticalAlignment="Center">f2</Label>
                     <TextBox HorizontalAlignment="Left" Margin="0,10,20,10"  TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="220" Name="txtF2"/>

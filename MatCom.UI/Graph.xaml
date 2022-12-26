@@ -36,7 +36,7 @@
 
             </StackPanel>
 
-            <Canvas x:Name="chartCanvas" MouseWheel="ChartCanvas_MouseWheel" Background="White" Margin="0,0,0,0" ClipToBounds="True">
+            <Canvas x:Name="chartCanvas" MouseWheel="ChartCanvas_MouseWheel" Background="White" Margin="0,0,0,0" ClipToBounds="True" MouseMove="ChartCanvas_MouseMove">
                     <!--MouseLeftButtonDown="ChartCanvas_MouseLeftButtonDown" MouseLeftButtonUp="ChartCanvas_MouseLeftButtonUp" MouseMove="ChartCanvas_MouseMove"-->
                 
                 <Canvas.RenderTransform>

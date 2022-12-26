@@ -43,39 +43,206 @@
                         <RowDefinition></RowDefinition>
                         <RowDefinition></RowDefinition>
                     </Grid.RowDefinitions>
-                    <TextBox Name="txtInput" Grid.Row="0" Grid.ColumnSpan="3" KeyUp="TxtInput_KeyUp" FontSize="16"></TextBox>
-                    <Button Grid.Column="3" Grid.Row="0" FontSize="18" Name="btnEnter" Click="BtnEnter_Click">Enter</Button>
-                    <Button Grid.Column="4" Grid.Row="0" FontSize="18" Name="btnCE" Click="BtnCE_Click">CE</Button>
-                    <Button Grid.Column="0" Grid.Row="1" FontSize="18" Name="btnNegate" Click="BtnAll_Click" >+/-</Button>
-                    <Button Grid.Column="1" Grid.Row="1" FontSize="18" Name="btnNum7" Click="BtnAll_Click" Tag="7">7</Button>
-                    <Button Grid.Column="2" Grid.Row="1" FontSize="18" Name="btnNum8" Click="BtnAll_Click" Tag="8">8</Button>
-                    <Button Grid.Column="3" Grid.Row="1" FontSize="18" Name="btnNum9" Click="BtnAll_Click" Tag="9">9</Button>
-                    <Button Grid.Column="4" Grid.Row="1" FontSize="18" Name="btnMul" Click="BtnAll_Click" Tag="*">*</Button>
-                    <Button Grid.Column="0" Grid.Row="2" FontSize="18" Name="btnLPar" Click="BtnAll_Click" Tag="(">(</Button>
-                    <Button Grid.Column="1" Grid.Row="2" FontSize="18" Name="btnNum4" Click="BtnAll_Click" Tag="4">4</Button>
-                    <Button Grid.Column="2" Grid.Row="2" FontSize="18" Name="btnNum5" Click="BtnAll_Click" Tag="5">5</Button>
-                    <Button Grid.Column="3" Grid.Row="2" FontSize="18" Name="btnNum6" Click="BtnAll_Click" Tag="6">6</Button>
-                    <Button Grid.Column="4" Grid.Row="2" FontSize="18" Name="btnDiv" Click="BtnAll_Click" Tag="/">/</Button>
-                    <Button Grid.Column="0" Grid.Row="3" FontSize="18" Name="btnRPar" Click="BtnAll_Click" Tag=")">)</Button>
-                    <Button Grid.Column="1" Grid.Row="3" FontSize="18" Name="btnNum1" Click="BtnAll_Click" Tag="1">1</Button>
-                    <Button Grid.Column="2" Grid.Row="3" FontSize="18" Name="btnNum2" Click="BtnAll_Click" Tag="2">2</Button>
-                    <Button Grid.Column="3" Grid.Row="3" FontSize="18" Name="btnNum3" Click="BtnAll_Click" Tag="3">3</Button>
-                    <Button Grid.Column="4" Grid.Row="3" FontSize="18" Name="btnAdd" Click="BtnAll_Click" Tag="+">+</Button>
-                    <Button Grid.Column="0" Grid.Row="4" FontSize="18" Name="btnPi" Click="BtnAll_Click" Tag="π" >π</Button>
-                    <Button Grid.Column="1" Grid.Row="4" FontSize="18" Name="btnExp" Click="BtnAll_Click" Tag="e">e</Button>
-                    <Button Grid.Column="2" Grid.Row="4" FontSize="18" Name="btnNum0" Click="BtnAll_Click" Tag="0">0</Button>
-                    <Button Grid.Column="3" Grid.Row="4" FontSize="18" Name="btnDot" Click="BtnAll_Click" Tag=".">.</Button>
-                    <Button Grid.Column="4" Grid.Row="4" FontSize="18" Name="btnEquals" Click="BtnAll_Click" Tag="=">=</Button>
-                    <Button Grid.Column="0" Grid.Row="5" FontSize="18" Name="btnSqr" Click="BtnAll_Click" Tag="^2">
+                    <TextBox Name="txtInput" Grid.Row="0" Grid.ColumnSpan="3" KeyUp="TxtInput_KeyUp" FontSize="16" Margin="3,3,1.5,1.5">
+                        <TextBox.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </TextBox.Resources>
+                    </TextBox>
+                    <Button Grid.Column="3" Grid.Row="0" FontSize="18" Name="btnEnter" Click="BtnEnter_Click" Margin="3,3,1.5,1.5" Background="#FFE9E9E9">Enter
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="4" Grid.Row="0" FontSize="18" Name="btnCE" Click="BtnCE_Click" Margin="1.5,3,3,1.5" Background="#FFE9E9E9">CE
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="0" Grid.Row="1" FontSize="18" Name="btnNegate" Click="BtnAll_Click" Margin="3,3,1.5,1.5" Background="#FFE9E9E9">+/-
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="1" Grid.Row="1" FontSize="18" Name="btnNum7" Click="BtnAll_Click" Tag="7" Margin="1.5,3,1.5,1.5" Background="#FFE9E9E9">7
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="2" Grid.Row="1" FontSize="18" Name="btnNum8" Click="BtnAll_Click" Tag="8" Margin="1.5,3,1.5,1.5" Background="#FFE9E9E9">8
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="3" Grid.Row="1" FontSize="18" Name="btnNum9" Click="BtnAll_Click" Tag="9" Margin="1.5,3,1.5,1.5" Background="#FFE9E9E9">9
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="4" Grid.Row="1" FontSize="18" Name="btnMul" Click="BtnAll_Click" Tag="*" Margin="1.5,3,3,1.5" Background="#FFE9E9E9">*
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="0" Grid.Row="2" FontSize="18" Name="btnLPar" Click="BtnAll_Click" Tag="(" Margin="3,1.5,1.5,1.5" Background="#FFE9E9E9">(
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="1" Grid.Row="2" FontSize="18" Name="btnNum4" Click="BtnAll_Click" Tag="4" Margin="1.5,1.5,1.5,1.5" Background="#FFE9E9E9">4
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="2" Grid.Row="2" FontSize="18" Name="btnNum5" Click="BtnAll_Click" Tag="5" Margin="1.5,1.5,1.5,1.5" Background="#FFE9E9E9">5
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="3" Grid.Row="2" FontSize="18" Name="btnNum6" Click="BtnAll_Click" Tag="6" Margin="1.5,1.5,1.5,1.5" Background="#FFE9E9E9">6
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="4" Grid.Row="2" FontSize="18" Name="btnDiv"  Click="BtnAll_Click" Tag="/" Margin="1.5,1.5,3,1.5" Background="#FFE9E9E9">/
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="0" Grid.Row="3" FontSize="18" Name="btnRPar" Click="BtnAll_Click" Tag=")" Margin="3,1.5,1.5,1.5" Background="#FFE9E9E9">)
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="1" Grid.Row="3" FontSize="18" Name="btnNum1" Click="BtnAll_Click" Tag="1" Margin="1.5,1.5,1.5,1.5" Background="#FFE9E9E9">1
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="2" Grid.Row="3" FontSize="18" Name="btnNum2" Click="BtnAll_Click" Tag="2" Margin="1.5,1.5,1.5,1.5" Background="#FFE9E9E9">2
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="3" Grid.Row="3" FontSize="18" Name="btnNum3" Click="BtnAll_Click" Tag="3" Margin="1.5,1.5,1.5,1.5" Background="#FFE9E9E9">3
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="4" Grid.Row="3" FontSize="18" Name="btnAdd"  Click="BtnAll_Click" Tag="+" Margin="1.5,1.5,3,1.5" Background="#FFE9E9E9">+
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="0" Grid.Row="4" FontSize="18" Name="btnPi"   Click="BtnAll_Click" Tag="π" Margin="3,1.5,1.5,1.5" Background="#FFE9E9E9" >π
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="1" Grid.Row="4" FontSize="18" Name="btnExp"  Click="BtnAll_Click" Tag="e" Margin="1.5,1.5,1.5,1.5" Background="#FFE9E9E9">e
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="2" Grid.Row="4" FontSize="18" Name="btnNum0" Click="BtnAll_Click" Tag="0" Margin="1.5,1.5,1.5,1.5" Background="#FFE9E9E9">0
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="3" Grid.Row="4" FontSize="18" Name="btnDot"  Click="BtnAll_Click" Tag="." Margin="1.5,1.5,1.5,1.5" Background="#FFE9E9E9">.
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="4" Grid.Row="4" FontSize="18" Name="btnEquals" Click="BtnAll_Click" Tag="=" Margin="1.5,1.5,3,1.5" Background="#FFE9E9E9">=
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="0" Grid.Row="5" FontSize="18" Name="btnSqr"  Click="BtnAll_Click" Tag="^2" Margin="3,1.5,1.5,1.5" Background="#FFE9E9E9">
                         <TextBlock>
                             <Run>x</Run>
                             <Run Typography.Variants="Superscript">2</Run>
                         </TextBlock>
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
                     </Button>
-                    <Button Grid.Column="1" Grid.Row="5" FontSize="18" Name="btnSqrt" Click="BtnAll_Click" Tag="sqrt">sqrt</Button>
-                    <Button Grid.Column="2" Grid.Row="5" FontSize="18" Name="btnCarat" Click="BtnAll_Click" Tag="^">^</Button>
-                    <Button Grid.Column="3" Grid.Row="5" FontSize="18" Name="btnLog" Click="BtnAll_Click" Tag="log">log</Button>
-                    <Button Grid.Column="4" Grid.Row="5" FontSize="18" Name="btnMod" Click="BtnAll_Click" Tag="%">%</Button>
+                    <Button Grid.Column="1" Grid.Row="5" FontSize="18" Name="btnSqrt" Click="BtnAll_Click" Tag="sqrt" Margin="1.5,1.5,1.5,1.5" Background="#FFE9E9E9">sqrt
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="2" Grid.Row="5" FontSize="18" Name="btnCarat" Click="BtnAll_Click" Tag="^" Margin="1.5,1.5,1.5,1.5" Background="#FFE9E9E9">^
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="3" Grid.Row="5" FontSize="18" Name="btnLog" Click="BtnAll_Click" Tag="log" Margin="1.5,1.5,1.5,1.5" Background="#FFE9E9E9">log
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Grid.Column="4" Grid.Row="5" FontSize="18" Name="btnMod" Click="BtnAll_Click" Tag="%" Margin="1.5,1.5,3,1.5" Background="#FFE9E9E9">%
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
 
                 </Grid>
             </StackPanel>

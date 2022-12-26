@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,7 +39,7 @@ namespace MatCom.UI
         bool _isDragged = false, _fitToScreen = true;
         string _expression;
         List<ExpressionValues> _expressionValues;
-
+        Path _path;
 
         public Graph()
         {
@@ -362,9 +363,9 @@ namespace MatCom.UI
                     if (idx != 0 && idx % 5 == 0)
                     {
                         axisLabels.Add(new AxisLabel(_origin.X, y, FormatLabel(_steps * idx), AxisType.YAxis));
-
+                        axisLabels.Add(new AxisLabel(xAxisLine.X1, y, FormatLabel(_steps * idx), AxisType.YAxis));
                     }
-                    
+
                 }
 
                 y = y - _xAxisLinesGap;
@@ -403,6 +404,8 @@ namespace MatCom.UI
                     if (idx != 0 && idx % 5 == 0)
                     {
                         axisLabels.Add(new AxisLabel(_origin.X, y, "-" + FormatLabel(_steps * idx), AxisType.YAxis));
+                        axisLabels.Add(new AxisLabel(xAxisLine.X1, y, "-" + FormatLabel(_steps * idx), AxisType.YAxis));
+                        //axisLabels.Add(new AxisLabel(xAxisLine.X2, y, "-" + FormatLabel(_steps * idx), AxisType.YAxis));
                     }
                 }
                 y += _xAxisLinesGap;
@@ -441,6 +444,7 @@ namespace MatCom.UI
                     if (idx != 0 && idx % 5 == 0)
                     {
                         axisLabels.Add(new AxisLabel(x, _origin.Y, FormatLabel(_steps * idx), AxisType.XAxis));
+                        axisLabels.Add(new AxisLabel(x, yAxisLine.Y1, FormatLabel(_steps * idx), AxisType.XAxis));
                     }                    
                 }
 
@@ -481,12 +485,64 @@ namespace MatCom.UI
                     if (idx != 0 && idx % 5 == 0)
                     {
                         axisLabels.Add(new AxisLabel(x, _origin.Y, FormatLabel(_steps * negIdx), AxisType.XAxis));
+                        axisLabels.Add(new AxisLabel(x, yAxisLine.Y1, FormatLabel(_steps * negIdx), AxisType.XAxis));
                     }
                 }
                 x = x - _yAxisLinesGap;
             }
             AddAxisLabels(axisLabels);
             _xOriginalMin = _xOriginalMin - _steps * 20;
+        }
+
+        
+
+        private void ChartCanvas_MouseMove(object sender, MouseEventArgs e)
+        {
+            return;
+            /*
+             * FindName function not working
+            UIElement uiEle = (UIElement) chartCanvas.FindName("mouseposition");
+            var ele = chartCanvas.FindName("mouseposition");
+            */
+            TextBlock txtBlock = null;
+            for (int i=0;i< chartCanvas.Children.Count; i++)
+            {
+                UIElement element = chartCanvas.Children[i];
+                if(element is TextBlock)
+                {
+                    txtBlock = (TextBlock)element;
+                    if(txtBlock.Name == "mouseposition")
+                    {
+                        break;
+                    }
+                }
+            }
+            if (txtBlock != null)
+                chartCanvas.Children.Remove(txtBlock);
+            //Point p = e.GetPosition(chartCanvas);
+            Point p = e.GetPosition(_path);
+            //double xPoint = _origin.X - (p.X * _steps / (_xAxisLinesGap));
+            //double yPoint = _origin.Y + (p.Y * _steps / (_yAxisLinesGap));
+            //double xPoint = _origin.X + (p.X * _xAxisLinesGap / (_steps));
+            //double yPoint = _origin.Y - (p.Y * _yAxisLinesGap / (_steps));
+
+            double xPoint = (p.X - _origin.X) * _steps / _xAxisLinesGap;
+            double yPoint = (_origin.Y - p.Y) * _steps / _yAxisLinesGap;
+
+            TextBlock textBlock = new TextBlock();
+            textBlock.Name = "mouseposition";
+            textBlock.Tag = "mouseposition";
+            textBlock.Text = "(x: " + xPoint.ToString("N2") + "  y: " + yPoint.ToString("N2") + ")";
+            textBlock.FontSize = 14.0;
+            //textBlock.Background = new SolidColorBrush(Colors.White);
+            textBlock.TextAlignment = TextAlignment.Right;
+            textBlock.Measure(new System.Windows.Size(Double.PositiveInfinity, Double.PositiveInfinity));
+            textBlock.Arrange(new Rect(textBlock.DesiredSize));
+            textBlock.Margin = new Thickness(5);
+            Canvas.SetLeft(textBlock, p.X); //include margin
+            Canvas.SetTop(textBlock, p.Y); //include margin
+            
+            chartCanvas.Children.Add(textBlock);
         }
 
         private string FormatLabel(double val)
@@ -517,13 +573,36 @@ namespace MatCom.UI
             textBlock.Margin = new Thickness(5);
             if (axis == AxisType.YAxis)
             {
-                Canvas.SetLeft(textBlock, x - textBlock.ActualWidth - 10); //include margin
+                double marginX = - 10;
+                if(!( 0 <= _origin.X && _origin.X <= _canvasWidth))
+                {
+                    marginX = textBlock.ActualWidth + 10;
+                }
+                Canvas.SetLeft(textBlock, x - textBlock.ActualWidth + marginX); //include margin
                 Canvas.SetTop(textBlock, y - textBlock.ActualHeight / 2 - 5); //include margin
+
             }
             else if (axis == AxisType.XAxis)
             {
+                double marginY = 10;
+                if (0 <= _origin.Y && _origin.Y <= _canvasHeight)
+                {
+                    if(y==0)
+                        marginY = textBlock.ActualHeight / 2 - 50;                    
+                    else
+                        marginY = 10;
+
+                }
+                else
+                {
+                    if (y == 0)
+                        marginY = 10;
+                    else
+                        marginY = textBlock.ActualHeight / 2 - 50;
+
+                }
                 Canvas.SetLeft(textBlock, x - textBlock.ActualWidth / 2 - 5); //include margin
-                Canvas.SetTop(textBlock, y - textBlock.ActualHeight / 2 + 10); //include margin
+                Canvas.SetTop(textBlock, y - textBlock.ActualHeight / 2 + marginY); //include margin
             }
             else if (axis == AxisType.Origin)
             {
@@ -691,6 +770,7 @@ namespace MatCom.UI
             path.Data = pathGeometry;
 
             chartCanvas.Children.Add(path);
+            _path = path;
             Canvas.SetZIndex(path, 1);
         }
 

@@ -14,12 +14,9 @@
             <StackPanel DockPanel.Dock="Right" Orientation="Vertical" Width="250" Background="#F0F4F9" >
 
                 <StackPanel Orientation="Horizontal">
-                    <Button Content="+" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="30" Click="BtnZoomIn_Click"  Margin="10,10,0,0" Visibility="Visible" Name="btnZoomIn" />
-                    <Button Content="-" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="30" Click="BtnZoomOut_Click" Margin="10,10,0,0" Visibility="Visible" Name="btnZoomOut" />
-                    <Button Content="Fit" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="30" Click="BtnFit_Click" Margin="10,10,0,0" Visibility="Visible" Name="btnFit"/>
 
-                    <Button Content="Left" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Click="BtnLeftPan_Click"  Margin="10,10,0,0" Visibility="Visible" Name="btnLeftPan"/>
-                    <Button Content="Right" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Click="BtnRightPan_Click" Margin="10,10,0,0" Visibility="Visible" Name="btnRightPan"/>
+                    <!--<Button Content="Left" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Click="BtnLeftPan_Click"  Margin="10,10,0,0" Visibility="Visible" Name="btnLeftPan"/>
+                    <Button Content="Right" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Click="BtnRightPan_Click" Margin="10,10,0,0" Visibility="Visible" Name="btnRightPan"/>-->
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                 </StackPanel>
@@ -37,11 +34,14 @@
             </StackPanel>
 
             <Canvas x:Name="chartCanvas" MouseWheel="ChartCanvas_MouseWheel" Background="White" Margin="0,0,0,0" ClipToBounds="True" MouseMove="ChartCanvas_MouseMove">
-                    <!--MouseLeftButtonDown="ChartCanvas_MouseLeftButtonDown" MouseLeftButtonUp="ChartCanvas_MouseLeftButtonUp" MouseMove="ChartCanvas_MouseMove"-->
-                
+                <!--MouseLeftButtonDown="ChartCanvas_MouseLeftButtonDown" MouseLeftButtonUp="ChartCanvas_MouseLeftButtonUp" MouseMove="ChartCanvas_MouseMove"-->
+
                 <Canvas.RenderTransform>
                     <MatrixTransform x:Name="mt"/>
                 </Canvas.RenderTransform>
+                <Button Panel.ZIndex="99" FontSize="18" Content="+" Canvas.Top="10" Canvas.Right="20" Width="30" Click="BtnZoomIn_Click" Visibility="Visible" x:Name="btnZoomIn" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                <Button Panel.ZIndex="99" FontSize="18" Content="-" Canvas.Top="40" Canvas.Right="20" Width="30" Click="BtnZoomOut_Click" Visibility="Visible" x:Name="btnZoomOut" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                <Button Panel.ZIndex="99" FontSize="18" Content="[  ]" Canvas.Top="70" Canvas.Right="20" Width="30" Click="BtnFit_Click" Visibility="Visible" x:Name="btnFit" HorizontalAlignment="Left" VerticalAlignment="Top"/>
 
             </Canvas>
 

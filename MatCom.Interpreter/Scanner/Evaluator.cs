@@ -24,8 +24,15 @@ namespace MatCom.Interpreter.Scanner
         {
             this.tokens = tokens;
         }
-
-      public void Parsing(string expression, double x/*, ConcurrentDictionary<double, double> points*/)
+        //added by Kiran
+        public double ParseExpressionForSingleValue(string expression, double x)
+        {
+            Parser parser = new Parser();
+            expression = expression.Replace("x", x.ToString());
+            double y = Convert.ToDouble(parser.Parse(expression));
+            return y;
+        }
+        public void Parsing(string expression, double x/*, ConcurrentDictionary<double, double> points*/)
         {
             Parser parser = new Parser();
             //p.Parse("x = " + i.ToString());

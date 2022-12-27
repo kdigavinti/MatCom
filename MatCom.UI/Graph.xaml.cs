@@ -25,7 +25,7 @@ namespace MatCom.UI
     public partial class Graph : Page
     {
 
-        double _canvasWidth = 0.0, _canvasHeight = 0.0;
+        double _canvasWidth = 0.0, _canvasHeight = 0.0, _canvasTop=0.0;
         double _xAxisLinesGap = 20, _yAxisLinesGap = 20;
         double _xOriginalMin = -50, _xOriginalMax = 50;
         double _xMin = 0, _xMax = 0;
@@ -39,7 +39,8 @@ namespace MatCom.UI
         bool _isDragged = false, _fitToScreen = true;
         string _expression;
         List<ExpressionValues> _expressionValues;
-        Path _path;
+        PathGeometry _pathGeometry;
+        Pen _pen = new Pen(new SolidColorBrush(),1);
 
         public Graph()
         {
@@ -47,7 +48,7 @@ namespace MatCom.UI
             //chartCanvas.Children.Clear();
             //DawGridLines();
 
-            //this.StateChanged += (sender, e) => PlotGraph();
+            //this.StateChanged += (sender, e) => PlotGraph();            
             this.SizeChanged += (sender, e) => PlotGraph();
             _expressionValues = new List<ExpressionValues>();
         }
@@ -131,7 +132,7 @@ namespace MatCom.UI
         //}
 
         private void BtnFit_Click(object sender, RoutedEventArgs e)
-        {
+        {            
             ResetValues();
             PlotGraph();
         }
@@ -145,17 +146,7 @@ namespace MatCom.UI
             _steps = 1;
             _stepsToCalculatePoints = 0.1;
             _fitToScreen = true;
-        }
-        private void BtnLeftPan_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void BtnRightPan_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
+        }      
         private void TxtF1_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
@@ -295,6 +286,9 @@ namespace MatCom.UI
 
         private void DawGridLines()
         {
+            Point relativePoint = chartCanvas.TransformToAncestor(Application.Current.MainWindow)
+                          .Transform(new Point(0, 0));
+            _canvasTop = relativePoint.Y;
             List<AxisLabel> axisLabels = new List<AxisLabel>();            
             _canvasWidth = chartCanvas.ActualWidth + 100; //allow margin
             _canvasHeight = chartCanvas.ActualHeight + 100; //allow margin
@@ -498,51 +492,56 @@ namespace MatCom.UI
 
         private void ChartCanvas_MouseMove(object sender, MouseEventArgs e)
         {
-            return;
             /*
              * FindName function not working
             UIElement uiEle = (UIElement) chartCanvas.FindName("mouseposition");
             var ele = chartCanvas.FindName("mouseposition");
             */
+            Point p = e.GetPosition(chartCanvas);
             TextBlock txtBlock = null;
-            for (int i=0;i< chartCanvas.Children.Count; i++)
+            for (int i = 0; i < chartCanvas.Children.Count; i++)
             {
                 UIElement element = chartCanvas.Children[i];
-                if(element is TextBlock)
+                if (element is TextBlock)
                 {
                     txtBlock = (TextBlock)element;
-                    if(txtBlock.Name == "mouseposition")
+                    if (txtBlock.Name == "mouseposition")
                     {
                         break;
+                    }
+                    else
+                    {
+                        txtBlock = null;
                     }
                 }
             }
             if (txtBlock != null)
                 chartCanvas.Children.Remove(txtBlock);
-            //Point p = e.GetPosition(chartCanvas);
-            Point p = e.GetPosition(_path);
-            //double xPoint = _origin.X - (p.X * _steps / (_xAxisLinesGap));
-            //double yPoint = _origin.Y + (p.Y * _steps / (_yAxisLinesGap));
-            //double xPoint = _origin.X + (p.X * _xAxisLinesGap / (_steps));
-            //double yPoint = _origin.Y - (p.Y * _yAxisLinesGap / (_steps));
-
-            double xPoint = (p.X - _origin.X) * _steps / _xAxisLinesGap;
-            double yPoint = (_origin.Y - p.Y) * _steps / _yAxisLinesGap;
-
-            TextBlock textBlock = new TextBlock();
-            textBlock.Name = "mouseposition";
-            textBlock.Tag = "mouseposition";
-            textBlock.Text = "(x: " + xPoint.ToString("N2") + "  y: " + yPoint.ToString("N2") + ")";
-            textBlock.FontSize = 14.0;
-            //textBlock.Background = new SolidColorBrush(Colors.White);
-            textBlock.TextAlignment = TextAlignment.Right;
-            textBlock.Measure(new System.Windows.Size(Double.PositiveInfinity, Double.PositiveInfinity));
-            textBlock.Arrange(new Rect(textBlock.DesiredSize));
-            textBlock.Margin = new Thickness(5);
-            Canvas.SetLeft(textBlock, p.X); //include margin
-            Canvas.SetTop(textBlock, p.Y); //include margin
             
-            chartCanvas.Children.Add(textBlock);
+            //if (_pathGeometry != null && _pathGeometry.FillContains(p))
+            if(_pathGeometry != null && _pathGeometry.StrokeContains(_pen, p))
+            {
+                double xPoint = (p.X - _origin.X) * _steps / _xAxisLinesGap;
+                //double yPoint = (_origin.Y - p.Y) * _steps / _yAxisLinesGap;
+                Evaluator evaluator = new Evaluator();
+                double yPoint = evaluator.ParseExpressionForSingleValue(_expression, xPoint);
+                TextBlock textBlock = new TextBlock();
+                textBlock.Name = "mouseposition";
+                textBlock.Tag = "mouseposition";
+                string precision = (_steps <= 0.5) ? "N6" : "N3";
+                textBlock.Text = "(x: " + xPoint.ToString(precision) + " , y: " + yPoint.ToString(precision) + ")";
+                textBlock.FontSize = 14.0;
+                //textBlock.Background = new SolidColorBrush(Colors.White);
+                textBlock.TextAlignment = TextAlignment.Right;
+                textBlock.Measure(new System.Windows.Size(Double.PositiveInfinity, Double.PositiveInfinity));
+                textBlock.Arrange(new Rect(textBlock.DesiredSize));
+                textBlock.Margin = new Thickness(5);
+                Canvas.SetLeft(textBlock, p.X); //include margin
+                Canvas.SetTop(textBlock, p.Y); //include margin
+
+                chartCanvas.Children.Add(textBlock);
+            }
+            
         }
 
         private string FormatLabel(double val)
@@ -618,7 +617,14 @@ namespace MatCom.UI
             {
                 if (this.ActualWidth > 0 && this.ActualHeight > 0)
                 {
+                    UIElement btnZoomInEle = (UIElement) chartCanvas.FindName("btnZoomIn");
+                    UIElement btnZoomOutEle = (UIElement)chartCanvas.FindName("btnZoomOut");
+                    UIElement btnFitEle = (UIElement)chartCanvas.FindName("btnFit");
                     chartCanvas.Children.Clear();
+                    //add the buttons again
+                    chartCanvas.Children.Add(btnZoomInEle);
+                    chartCanvas.Children.Add(btnZoomOutEle);
+                    chartCanvas.Children.Add(btnFitEle);
                     DawGridLines();
                     
                     if (!string.IsNullOrEmpty(_expression))
@@ -647,71 +653,8 @@ namespace MatCom.UI
                 points.Add(new System.Windows.Point(xPoint, yPoint));
 
             }
-
             DrawBezierCurve(points, color);
         }
-
-        /*private void DrawBezierCurve2(List<System.Windows.Point> points, System.Windows.Media.SolidColorBrush color)
-        {
-            if (points == null || (points != null && points.Count == 0)) return;
-
-            // Create a PathFigure to be used for the PathGeometry of myPath.
-            PathFigure pathFigure = new PathFigure();
-
-            // Set the starting point for the PathFigure             
-            System.Windows.Point startPoint = new System.Windows.Point(points[0].X, points[0].Y);
-            //System.Windows.Point endPoint = new System.Windows.Point(points[points.Count - 1].X, points[points.Count - 1].Y);
-            pathFigure.StartPoint = startPoint;
-
-            // Create a PointCollection that holds the Points used to specify 
-            // the points of the BezierSegment below.
-            PointCollection pointCollection = new PointCollection(points.Count);
-            foreach (var pt in points)
-            {
-                pointCollection.Add(pt);
-            }
-
-            PathSegmentCollection pathSegmentCollection = new PathSegmentCollection();
-            for (int i = 0; i < points.Count - 1; i = i + 1)
-            {
-                //System.Windows.Point p1 = points[i];
-                //System.Windows.Point p2 = points[i + 1];
-                //System.Windows.Point p3 = points[i + 2];
-                QuadraticBezierSegment seg = new QuadraticBezierSegment()
-                {
-                    Point1 = points[i], //p1,
-                    Point2 = points[i + 1], //p2,
-                    //Point3 = points[i + 2], //p3,
-                    IsSmoothJoin = true,
-                    IsStroked = true
-                };
-
-                pathSegmentCollection.Add(seg);
-
-
-            }          
-
-            //PolyQuadraticBezierSegment seg = new PolyQuadraticBezierSegment(pointCollection, true);
-            //pathSegmentCollection.Add(seg);
-            pathFigure.Segments = pathSegmentCollection;
-
-            PathFigureCollection pathFigureColl = new PathFigureCollection();
-            pathFigureColl.Add(pathFigure);
-
-            PathGeometry pathGeometry = new PathGeometry();
-            pathGeometry.Figures = pathFigureColl;
-
-            // Create a path to draw a geometry with.
-            Path path = new Path();
-            path.Stroke = color;
-            path.StrokeThickness = 3;
-
-            // specify the shape (quadratic Bezier curve) of the path using the StreamGeometry.
-            path.Data = pathGeometry;
-
-            chartCanvas.Children.Add(path);
-            Canvas.SetZIndex(path, 1);
-        }*/
 
         private void DrawBezierCurve(List<System.Windows.Point> points, System.Windows.Media.SolidColorBrush color)
         {
@@ -770,11 +713,10 @@ namespace MatCom.UI
             path.Data = pathGeometry;
 
             chartCanvas.Children.Add(path);
-            _path = path;
+            _pathGeometry = pathGeometry;
+            
             Canvas.SetZIndex(path, 1);
         }
-
-
     }
 }
 public class AxisLabel : GraphPoint
@@ -801,137 +743,3 @@ public class ExpressionValues
     public string Expression { get; set; }
     public List<GraphPoint> GraphPoints { get; set; }
 }
-
-/*double y = _origin.Y;
-double x = _origin.X;
-Line xAxisLine, yAxisLine;
-
-//draw x-axis lines - below the origin
-int idx = 0;
-while (y <= _canvasHeight)
-{
-    if (0 <= y && y <= _canvasHeight)
-    {
-        xAxisLine = new Line()
-        {
-            X1 = 0,
-            Y1 = y,
-            X2 = _canvasWidth,
-            Y2 = y,
-            Stroke = (y == _origin.Y) ? Brushes.Black : Brushes.LightGray,
-            //Stroke = Brushes.LightGray,
-            StrokeThickness = (idx != 0 && idx % 5 == 0) ? 1.5 : 0.75,
-        };
-
-        chartCanvas.Children.Add(xAxisLine);
-
-        if (idx != 0 && idx % 5 == 0)
-        {
-            axisLabels.Add(new AxisLabel(_origin.X, y, "-" + FormatLabel(_steps * idx), AxisType.YAxis));
-
-        }
-        idx++;
-    }
-    y += _xAxisLinesGap;
-
-}
-
-//draw x-axis lines - above the origin
-
-y = _origin.Y;
-x = _origin.X;
-idx = 0;
-while (y >= 10)
-{
-    if (0 <= y && y <= _canvasHeight)
-    {
-        xAxisLine = new Line()
-        {
-            X1 = 0,
-            Y1 = y,
-            X2 = _canvasWidth,
-            Y2 = y,
-            Stroke = (y == _origin.Y) ? Brushes.Black : Brushes.LightGray,
-            //Stroke = Brushes.LightGray,
-            StrokeThickness = (idx != 0 && idx % 5 == 0) ? 1.5 : 0.75,
-        };
-
-        chartCanvas.Children.Add(xAxisLine);
-        if (idx != 0 && idx % 5 == 0)
-        {
-            axisLabels.Add(new AxisLabel(_origin.X, y, FormatLabel(_steps * idx), AxisType.YAxis));
-
-        }
-        idx++;
-    }
-
-    y = y - _xAxisLinesGap;
-
-}
-
-
-//draw y-axis lines - right to the origin
-
-y = _origin.Y;
-x = _origin.X;
-idx = 0;
-while (x <= _canvasWidth)
-{
-    if (0 <= x && x <= _canvasWidth)
-    {
-        yAxisLine = new Line()
-        {
-            X1 = x,
-            Y1 = 0,
-            X2 = x,
-            Y2 = _canvasHeight,
-            Stroke = (x == _origin.X) ? Brushes.Black : Brushes.LightGray,
-            //Stroke = Brushes.LightGray,
-            StrokeThickness = (idx != 0 && idx % 5 == 0) ? 1.5 : 0.75,
-        };
-
-        chartCanvas.Children.Add(yAxisLine);
-        if (idx != 0 && idx % 5 == 0)
-        {
-            axisLabels.Add(new AxisLabel(x, _origin.Y, FormatLabel(_steps * idx), AxisType.XAxis));
-
-        }
-        idx++;
-    }
-
-    x = x + _yAxisLinesGap;
-
-}
-
-////draw y-axis lines - left to the origin
-
-y = _origin.Y;
-x = _origin.X;
-idx = 0;
-while (x >= 10)
-{
-    if (0 <= x && x <= _canvasWidth)
-    {
-        yAxisLine = new Line()
-        {
-            X1 = x,
-            Y1 = 0,
-            X2 = x,
-            Y2 = _canvasHeight,
-            Stroke = (x == _origin.X) ? Brushes.Black : Brushes.LightGray,
-            //Stroke = Brushes.LightGray,
-            StrokeThickness = (idx != 0 && idx % 5 == 0) ? 1.5 : 0.75,
-        };
-
-        chartCanvas.Children.Add(yAxisLine);
-        if (idx != 0 && idx % 5 == 0)
-        {
-            axisLabels.Add(new AxisLabel(x, _origin.Y, "-" + FormatLabel(_steps * idx), AxisType.XAxis));
-
-        }
-        idx++;
-    }
-
-    x = x - _yAxisLinesGap;
-
-}*/

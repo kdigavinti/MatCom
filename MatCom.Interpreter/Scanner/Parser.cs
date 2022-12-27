@@ -118,16 +118,40 @@ namespace MatCom.Interpreter.Scanner
 
         AST? Term()
         {
-            AST? term = Factor();
+            /* AST? term = Factor();
+             string _operator = string.Empty;
+             while (_currToken.type != TokenType.EOF && term != null && _currToken.value is "^" or "*" or "/" or "|" or "&" or "<" or ">" or "<=" or ">=" or "==" or "!=" or "&&" or "||")
+             {
+                 _operator = _currToken.value;
+                 NextToken();
+                 AST? rightNode = Factor();
+                 term = new ASTBinaryOp(term, rightNode, _operator);
+             }
+             return term;*/
+            AST? term = Power();
             string _operator = string.Empty;
-            while (_currToken.type != TokenType.EOF && term != null && _currToken.value is "^" or "*" or "/" or "|" or "&" or "<" or ">" or "<=" or ">=" or "==" or "!=" or "&&" or "||")
+            while (_currToken.type != TokenType.EOF && term != null && _currToken.value is "*" or "/" or "|" or "&" or "<" or ">" or "<=" or ">=" or "==" or "!=" or "&&" or "||")
+            {
+                _operator = _currToken.value;
+                NextToken();
+                AST? rightNode = Power();
+                term = new ASTBinaryOp(term, rightNode, _operator);
+            }
+            return term;
+        }
+
+        AST? Power()
+        {
+            AST? power = Factor();
+            string _operator = string.Empty;
+            while(_currToken.type != TokenType.EOF && power != null && _currToken.value == "^")
             {
                 _operator = _currToken.value;
                 NextToken();
                 AST? rightNode = Factor();
-                term = new ASTBinaryOp(term, rightNode, _operator);
+                power = new ASTBinaryOp(power, rightNode, _operator);
             }
-            return term;
+            return power;
         }
 
         AST? Factor()

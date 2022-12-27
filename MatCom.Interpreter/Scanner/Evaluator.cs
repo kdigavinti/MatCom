@@ -43,6 +43,14 @@ namespace MatCom.Interpreter.Scanner
                 Points.TryAdd(x, y);
         }
 
+        public static double ParseFunction(string expression, double x)
+        {
+            Parser parser = new Parser();
+            expression = expression.Replace("x", x.ToString());
+            double y = Convert.ToDouble(parser.Parse(expression));
+            return y;
+        }
+
         public async Task RunTasks(decimal xmin, decimal xmax, decimal steps, string expression)
         {
             var tasksList = new List<Task>();   
@@ -91,6 +99,68 @@ namespace MatCom.Interpreter.Scanner
             }
             return GraphPoints;
             //await RunTasks(points, expression);
+        }
+
+        public static string RootPolynomial(double left, double right, string expression)
+        {
+           /* double tolerance = 0.00001;
+            double xLeft = start;
+            double xRight = end;
+            double xMiddle = (start + end) / 2;
+            double yLeft = ParseFunction(expression, xLeft);
+            double yRight = ParseFunction(expression, xRight);
+            double yMiddle = tolerance + 1.0;
+
+
+            while(Math.Abs(xRight - xLeft) > tolerance)
+            {
+                xMiddle = (xLeft + xRight)/2;
+                yMiddle = ParseFunction(expression, xMiddle);
+                if(yMiddle * yLeft < 0)
+                {
+                    xRight = xMiddle;
+                    yRight = yMiddle;
+                }
+                else
+                {
+                    xLeft = xMiddle;
+                    yLeft = yMiddle;
+                }
+            }
+            return xMiddle.ToString();*/
+            List<GraphPoint> graphPoints = new List<GraphPoint>();
+            //double tolerance = 0.00001;
+            double tolerance = 0.01;
+            double mid = (left + right)/2;
+            double yMid = ParseFunction(expression, mid);
+            int iterations = 0;
+
+            if (ParseFunction(expression, left) * ParseFunction(expression, right) > 0)
+            {
+                return "";
+            }
+
+            if (yMid != 0)
+            {
+                while (Math.Abs(yMid) >= tolerance && iterations < 500)
+                {
+                    if (ParseFunction(expression, mid) == 0.0)
+                    {
+                        break;
+                    }
+                    else if ((ParseFunction(expression, mid) * ParseFunction(expression, left)) > 0)
+                    {
+                        left = mid;
+                    }
+                    else
+                    {
+                        right = mid;
+                    }
+                    mid = Math.Round((left + right) / 2, 4);
+                    iterations++;
+                }
+            }
+            return mid.ToString();
         }
 
         public static List<GraphPoint> Evaluate(decimal xmin, decimal xmax, decimal steps, string expression)

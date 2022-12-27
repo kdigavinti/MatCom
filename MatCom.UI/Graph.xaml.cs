@@ -146,6 +146,7 @@ namespace MatCom.UI
             _steps = 1;
             _stepsToCalculatePoints = 0.1;
             _fitToScreen = true;
+            _expressionValues = new List<ExpressionValues>();
         }      
         private void TxtF1_KeyDown(object sender, KeyEventArgs e)
         {
@@ -531,11 +532,11 @@ namespace MatCom.UI
                 string precision = (_steps <= 0.5) ? "N6" : "N3";
                 textBlock.Text = "(x: " + xPoint.ToString(precision) + " , y: " + yPoint.ToString(precision) + ")";
                 textBlock.FontSize = 14.0;
-                //textBlock.Background = new SolidColorBrush(Colors.White);
+                textBlock.Background = new SolidColorBrush(Colors.White);
                 textBlock.TextAlignment = TextAlignment.Right;
                 textBlock.Measure(new System.Windows.Size(Double.PositiveInfinity, Double.PositiveInfinity));
                 textBlock.Arrange(new Rect(textBlock.DesiredSize));
-                textBlock.Margin = new Thickness(5);
+                textBlock.Padding = new Thickness(10);
                 Canvas.SetLeft(textBlock, p.X); //include margin
                 Canvas.SetTop(textBlock, p.Y); //include margin
 

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Reflection.Emit;
 using System.Text;
 using System.Threading;
@@ -41,6 +42,7 @@ namespace MatCom.UI
         List<ExpressionValues> _expressionValues;
         PathGeometry _pathGeometry;
         Pen _pen = new Pen(new SolidColorBrush(),1);
+        List<Point> _zeroCrossingPoints = new List<Point>();
 
         public Graph()
         {
@@ -156,6 +158,7 @@ namespace MatCom.UI
                 {
                     _expression = txtF1.Text.Trim();
                     ResetValues();
+                    _zeroCrossingPoints.Clear();
                     PlotGraph();
                 }
 
@@ -488,8 +491,110 @@ namespace MatCom.UI
             AddAxisLabels(axisLabels);
             _xOriginalMin = _xOriginalMin - _steps * 20;
         }
+        private void ClearZeroCrossingPoints()
+        {            
+            for (int i = 0; i < chartCanvas.Children.Count; i++)
+            {
+                UIElement element = chartCanvas.Children[i];
+                if (element is TextBlock)
+                {
+                    TextBlock txtBlock = (TextBlock)element;
+                    if (txtBlock.Name.ToLower().StartsWith("zerocrossingpointlabel"))
+                    {
+                        chartCanvas.Children.Remove(txtBlock);
+                        i--;
+                    }
+                }
+                if (element is Ellipse)
+                {
+                    Ellipse ellipseEle = (Ellipse)element;
+                    if (ellipseEle.Name.ToLower().StartsWith("zerocrossingpoint"))
+                    {
+                        chartCanvas.Children.Remove(ellipseEle);
+                        i--;
+                    }
+                }
+            }
+        }
+        private List<ZeroCrossingRange> FindZeroCrossingPointsRange()
+        {
+            List<ZeroCrossingRange> lstZeroCrossingRanges = new List<ZeroCrossingRange>();
+            foreach(ExpressionValues expvalues in _expressionValues)
+            {
+                if(expvalues.Expression == txtF1.Text.Trim())
+                {
+                    string previousPoint = "", currentPoint = "";
+                    double previousPointY = 0.0, currentPointY = 0.0;
+                    double previousPointX = 0.0, currentPointX = 0.0;
+                    foreach (GraphPoint p in expvalues.GraphPoints)
+                    {
+                        currentPointY = p.Y;
+                        currentPointX = p.X;
+                        currentPoint = (currentPointY >= 0) ? "P" : "N";
+                        if ((previousPoint == "N" && currentPoint=="P") ||(previousPoint == "P" && currentPoint == "N"))
+                        {
+                            lstZeroCrossingRanges.Add(new ZeroCrossingRange() { X1 = previousPointX, X2 = currentPointX });
+                        }                        
+                        previousPoint = currentPoint;
+                        previousPointY = currentPointY;
+                        previousPointX = currentPointX;
+                    }
+                }
+            }
+            return lstZeroCrossingRanges;
+        }
+        private void AddZeroCrossingPoints(List<Point> points)
+        {
+            double pointDia = 10;
+            for(int i=0; i < points.Count; i++)
+            {
+                double xPoint = points[i].X, yPoint = points[i].Y;
+                double xCanvasPoint = _origin.X + (xPoint * _xAxisLinesGap / (_steps));
+                double yCanvasPoint = _origin.Y - (yPoint * _yAxisLinesGap / (_steps));
+                Ellipse ellipse = new Ellipse();
+                ellipse.Height = pointDia;
+                ellipse.Width = pointDia;
+                ellipse.StrokeThickness = 3;
+                ellipse.Fill = new SolidColorBrush(Colors.Red);
+                ellipse.Name = "zeroCrossingPoint" + i;
+                Canvas.SetZIndex(ellipse, 99);
+                Canvas.SetTop(ellipse, yCanvasPoint - pointDia / 2);
+                Canvas.SetLeft(ellipse, xCanvasPoint - pointDia / 2);
+                chartCanvas.Children.Add(ellipse);
 
-        
+
+                TextBlock textBlock = new TextBlock();
+                textBlock.Name = "zeroCrossingPointLabel" + i;
+                string precision = (_steps <= 0.5) ? "N6" : "N3";
+                //textBlock.Text = "(x: " + xPoint.ToString(precision) + " , y: " + yPoint.ToString(precision) + ")";
+                textBlock.Text = "(x: " + xPoint.ToString(precision) + ")";
+                textBlock.FontSize = 14.0;
+                textBlock.Background = new SolidColorBrush(Colors.White);
+                textBlock.TextAlignment = TextAlignment.Right;
+                textBlock.Measure(new System.Windows.Size(Double.PositiveInfinity, Double.PositiveInfinity));
+                textBlock.Arrange(new Rect(textBlock.DesiredSize));
+                textBlock.Padding = new Thickness(5);
+                Canvas.SetZIndex(textBlock, 90);
+                Canvas.SetLeft(textBlock, xCanvasPoint);
+                Canvas.SetTop(textBlock, yCanvasPoint);
+
+                chartCanvas.Children.Add(textBlock);
+            }
+            
+        }
+        private void BtnZeroCrossing_Click(object sender, RoutedEventArgs e)
+        {
+            ClearZeroCrossingPoints();
+            _zeroCrossingPoints.Clear();
+            List<ZeroCrossingRange> lstZeroCrossingRanges = FindZeroCrossingPointsRange();            
+            foreach (ZeroCrossingRange zeroCrossingRange in lstZeroCrossingRanges)
+            {
+                string zeroCrossingPoint = Evaluator.RootPolynomial(zeroCrossingRange.X1, zeroCrossingRange.X2, txtF1.Text);
+                if(!string.IsNullOrEmpty(zeroCrossingPoint))
+                    _zeroCrossingPoints.Add(new Point(Convert.ToDouble(zeroCrossingPoint), 0));
+            }
+            AddZeroCrossingPoints(_zeroCrossingPoints);
+        }
 
         private void ChartCanvas_MouseMove(object sender, MouseEventArgs e)
         {
@@ -528,7 +633,6 @@ namespace MatCom.UI
                 double yPoint = evaluator.ParseExpressionForSingleValue(_expression, xPoint);
                 TextBlock textBlock = new TextBlock();
                 textBlock.Name = "mouseposition";
-                textBlock.Tag = "mouseposition";
                 string precision = (_steps <= 0.5) ? "N6" : "N3";
                 textBlock.Text = "(x: " + xPoint.ToString(precision) + " , y: " + yPoint.ToString(precision) + ")";
                 textBlock.FontSize = 14.0;
@@ -632,6 +736,8 @@ namespace MatCom.UI
                     {
                         List<GraphPoint> graphPoints =await CalculatePoints(_expression);                        
                         PlotCurve(graphPoints, Brushes.Blue);
+                        ClearZeroCrossingPoints();                        
+                        AddZeroCrossingPoints(_zeroCrossingPoints);
                     }
                 }
             }
@@ -743,4 +849,9 @@ public class ExpressionValues
 {
     public string Expression { get; set; }
     public List<GraphPoint> GraphPoints { get; set; }
+}
+public class ZeroCrossingRange
+{
+    public double X1 { get; set; }
+    public double X2 { get; set; }
 }

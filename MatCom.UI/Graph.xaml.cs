@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Reflection.Emit;
 using System.Text;
@@ -86,13 +87,17 @@ namespace MatCom.UI
 
         private void OnZoomOutClick()
         {
-            _zoomFactor = _zoomFactor * 2;
-            double labelStep = _steps * 5;
-            labelStep = Math.Truncate(labelStep * 1000) / 1000; ;
-            _steps = (labelStep >= 0 && labelStep.ToString().Contains("2")) ? _steps * 2.5 : _steps * 2;
-            if (_steps == 1) _stepsToCalculatePoints = 0.2;
-            _stepsToCalculatePoints = (_steps >= 1) ? _stepsToCalculatePoints * 10 : _stepsToCalculatePoints;
-            PlotGraph();
+            double newStep = ((_steps * 5).ToString().Contains("2")) ? _steps * 2.5 : _steps * 2;
+            if (newStep <= 10000)
+            {
+                _zoomFactor = _zoomFactor * 2;
+                double labelStep = _steps * 5;
+                labelStep = Math.Truncate(labelStep * 1000) / 1000; ;
+                _steps = (labelStep >= 0 && labelStep.ToString().Contains("2")) ? _steps * 2.5 : _steps * 2;
+                if (_steps == 1) _stepsToCalculatePoints = 0.2;
+                _stepsToCalculatePoints = (_steps >= 1) ? _stepsToCalculatePoints * 10 : _stepsToCalculatePoints;
+                PlotGraph();
+            }
         }
 
         private void ChartCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -273,23 +278,32 @@ namespace MatCom.UI
                     Expression = _expression,
                     GraphPoints = graphPoints
                 };
+                //_expressionValues.Clear();
                 _expressionValues.Add(expValues);
                 expValues.GraphPoints.OrderBy(i => i.X);
             }
             else
             {
-                List<double> xPointsToEvaluate = xPoints.Where(x => !expValues.GraphPoints.Any(pt => pt.X == x)).ToList();                
+                List<double> xPointsToEvaluate = xPoints.Where(x => !expValues.GraphPoints.Any(pt => pt.X == x)).ToList();
                 await eval.Evaluate(xPointsToEvaluate, _expression);
                 graphPoints = eval.GraphPoints;
                 expValues.GraphPoints.AddRange(graphPoints);
                 expValues.GraphPoints = expValues.GraphPoints.DistinctBy(i=>i.X).OrderBy(j => j.X).ToList();
                 graphPoints = expValues.GraphPoints;
             }
-            return graphPoints;
+                return graphPoints;
         }
 
         private void DawGridLines()
         {
+            UIElement btnZoomInEle = (UIElement)chartCanvas.FindName("btnZoomIn");
+            UIElement btnZoomOutEle = (UIElement)chartCanvas.FindName("btnZoomOut");
+            UIElement btnFitEle = (UIElement)chartCanvas.FindName("btnFit");
+            chartCanvas.Children.Clear();
+            //add the buttons again
+            chartCanvas.Children.Add(btnZoomInEle);
+            chartCanvas.Children.Add(btnZoomOutEle);
+            chartCanvas.Children.Add(btnFitEle);
             Point relativePoint = chartCanvas.TransformToAncestor(Application.Current.MainWindow)
                           .Transform(new Point(0, 0));
             _canvasTop = relativePoint.Y;
@@ -596,6 +610,22 @@ namespace MatCom.UI
             AddZeroCrossingPoints(_zeroCrossingPoints);
         }
 
+        private void BtnClearZeroCrossing_Click(object sender, RoutedEventArgs e)
+        {
+            ClearZeroCrossingPoints();
+        }
+
+        private void BtnReset_Click(object sender, RoutedEventArgs e)
+        {
+            _zeroCrossingPoints.Clear();
+            _expressionValues.Clear();
+            chartCanvas.Children.Clear();
+            txtF1.Text = "";
+            _expression = "";
+            ResetValues();
+            DawGridLines();
+        }
+
         private void ChartCanvas_MouseMove(object sender, MouseEventArgs e)
         {
             /*
@@ -631,6 +661,8 @@ namespace MatCom.UI
                 //double yPoint = (_origin.Y - p.Y) * _steps / _yAxisLinesGap;
                 Evaluator evaluator = new Evaluator();
                 double yPoint = evaluator.ParseExpressionForSingleValue(_expression, xPoint);
+                //xPoint = p.X;
+                //yPoint = p.Y;
                 TextBlock textBlock = new TextBlock();
                 textBlock.Name = "mouseposition";
                 string precision = (_steps <= 0.5) ? "N6" : "N3";
@@ -721,15 +753,7 @@ namespace MatCom.UI
             try
             {
                 if (this.ActualWidth > 0 && this.ActualHeight > 0)
-                {
-                    UIElement btnZoomInEle = (UIElement) chartCanvas.FindName("btnZoomIn");
-                    UIElement btnZoomOutEle = (UIElement)chartCanvas.FindName("btnZoomOut");
-                    UIElement btnFitEle = (UIElement)chartCanvas.FindName("btnFit");
-                    chartCanvas.Children.Clear();
-                    //add the buttons again
-                    chartCanvas.Children.Add(btnZoomInEle);
-                    chartCanvas.Children.Add(btnZoomOutEle);
-                    chartCanvas.Children.Add(btnFitEle);
+                {                    
                     DawGridLines();
                     
                     if (!string.IsNullOrEmpty(_expression))
@@ -756,8 +780,8 @@ namespace MatCom.UI
                 //double yPoint = _origin.Y - (value.Y * _yAxisLinesGap / (_zoomFactor * _steps));
                 double xPoint = _origin.X + (value.X * _xAxisLinesGap / (_steps));
                 double yPoint = _origin.Y - (value.Y * _yAxisLinesGap / (_steps));
-
-                points.Add(new System.Windows.Point(xPoint, yPoint));
+                if(xPoint>=0 && xPoint<=_canvasWidth && yPoint>=-2*_canvasHeight && yPoint<=2*_canvasHeight)
+                    points.Add(new System.Windows.Point(xPoint, yPoint));
 
             }
             DrawBezierCurve(points, color);

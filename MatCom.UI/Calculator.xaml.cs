@@ -25,6 +25,7 @@ namespace MatCom.UI
         public Calculator()
         {
             InitializeComponent();
+            txtInput.Focus();
             SetRichTextBoxInput("MatCom > ");          
             _parser = new Parser();
         }
@@ -32,7 +33,33 @@ namespace MatCom.UI
         private void BtnAll_Click(object sender, RoutedEventArgs e)
         {
             Button btn = (Button)e.Source;
-            txtInput.Text += btn.Tag;
+            string tag = btn.Tag.ToString();
+            if (tag == "inv")
+            {
+                txtInput.Text = "1/" + txtInput.Text;
+            }
+            else if (tag == "negate")
+            {
+                txtInput.Text = txtInput.Text.StartsWith("-") ? txtInput.Text.Substring(1) : "-" + txtInput.Text;
+            }
+            else
+            {
+                if (txtInput.Text.Contains("()"))
+                {
+                    txtInput.Text = txtInput.Text.Insert(txtInput.Text.LastIndexOf("(")+1, tag);
+                }
+                else
+                    txtInput.Text += tag;
+            }
+            txtInput.Focus();
+            if (tag.Contains("()"))
+            {
+                txtInput.SelectionStart = txtInput.Text.LastIndexOf("(") + 1;
+            }
+            else
+                txtInput.SelectionStart = txtInput.Text.Length;
+
+
         }
 
         private void TxtInput_KeyUp(object sender, KeyEventArgs e)
@@ -54,6 +81,12 @@ namespace MatCom.UI
             rtbOutputWindow.AppendText("MatCom > ");
             rtbOutputWindow.ScrollToEnd();
             txtInput.Text = "";
+            txtInput.Focus();
+        }
+        private void BtnClear_Click(object sender, RoutedEventArgs e)
+        {
+            txtInput.Text = "";
+            txtInput.Focus();
         }
 
         private void SetRichTextBoxInput(string inputStr)
@@ -99,5 +132,6 @@ namespace MatCom.UI
                 //rangeOfText2.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Normal);
             }
         }
+       
     }
 }

@@ -32,20 +32,23 @@
                     <TextBlock TextWrapping="WrapWithOverflow" Name="txtBlockErrorMessage" VerticalAlignment="Center" FontSize="18" Margin="10,10,10,10" Width="230" Visibility="Collapsed" Foreground="#FFFA0505" FontWeight="Bold">
                         
                     </TextBlock>
-                    <Button FontSize="18" Content="Find Zero Crossing" Margin="10,10,10,10" Width="230" Click="BtnZeroCrossing_Click" Visibility="Visible" x:Name="btnZeroCrossing" HorizontalAlignment="Left">
-                        <Button.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="5"/>
-                            </Style>
-                        </Button.Resources>
-                    </Button>
-                    <Button FontSize="18" Content="Clear Zero Crossing" Margin="10,10,10,10" Width="230" Click="BtnClearZeroCrossing_Click" Visibility="Visible" x:Name="btnClearZeroCrossing" HorizontalAlignment="Left">
-                        <Button.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="5"/>
-                            </Style>
-                        </Button.Resources>
-                    </Button>
+                    <StackPanel Orientation="Horizontal">
+                        <Button FontSize="18" Content="Zero Crossing" Margin="10,10,10,10" Width="140" Click="BtnZeroCrossing_Click" Visibility="Visible" x:Name="btnZeroCrossing" HorizontalAlignment="Left">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="5"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                        <Button FontSize="18" Content="Clear" Margin="10,10,10,10" Width="70" Click="BtnClearZeroCrossing_Click" Visibility="Visible" x:Name="btnClearZeroCrossing" HorizontalAlignment="Left">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="5"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </StackPanel>
+                    
                     <Button FontSize="18" Content="Reset" Margin="10,10,10,10" Width="230" Click="BtnReset_Click" Visibility="Visible" x:Name="btnReset" HorizontalAlignment="Left">
                         <Button.Resources>
                             <Style TargetType="Border">

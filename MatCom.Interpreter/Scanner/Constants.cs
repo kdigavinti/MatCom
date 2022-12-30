@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -77,6 +78,7 @@ namespace MatCom.Interpreter.Scanner
                     case "ln": result = Math.Log(_value); break;
                     case "exp": result = Math.Exp(_value); break;
                     case "sqrt": result = Math.Sqrt(_value); break;
+                    case "cbrt": result = Math.Cbrt(_value); break;
                     case "sin": result = Math.Sin(_value); break;
                     case "cos": result = Math.Cos(_value); break;
                     case "tan": result = Math.Tan(_value); break;

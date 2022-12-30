@@ -5,7 +5,7 @@ open System
 
 module ZeroCrossing =
     let rec bisection (left : double, right : double, expression : string, iterations: int) =
-        let tolerance = 0.001
+        let tolerance = 0.00001
         if (Evaluator.ParseFunction(expression, left) * Evaluator.ParseFunction(expression, right) > 0) then
             ""
         else

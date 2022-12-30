@@ -196,7 +196,7 @@ namespace MatCom.Interpreter.Scanner
                     if (_currToken.value == "(")
                     {
                         NextToken(); //Skip left parantheses
-                        factor = new ASTNumericLeaf(Constants.FunctionValue(functionName, _currToken.value));
+                        factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), _currToken.value));
                         NextToken(); //eat Token )
                         if(_currToken.value != ")")
                         {

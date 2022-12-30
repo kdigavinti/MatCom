@@ -43,6 +43,17 @@ namespace MatCom.Interpreter.Scanner
                 Points.TryAdd(x, y);
         }
 
+        private bool Validate(string expression)
+        {
+            Parser parser = new Parser();
+            expression = expression.Replace("x", "1", StringComparison.OrdinalIgnoreCase);
+            if(parser.Parse(expression) != "")
+            {
+                return true;
+            }
+            return false;
+        }
+
         public static double ParseFunction(string expression, double x)
         {
             Parser parser = new Parser();
@@ -89,13 +100,16 @@ namespace MatCom.Interpreter.Scanner
 
         public async Task<List<GraphPoint>> Evaluate(List<double> inputPoints, string expression)
         {
-            await Task.Run(() => Parallel.ForEach(inputPoints, p =>
+            if (Validate(expression))
             {
-                Parsing(expression, p);
-            }));
-            foreach (var item in Points.OrderBy(x => x.Key))
-            {
-                GraphPoints.Add(new GraphPoint(item.Key, item.Value));
+                await Task.Run(() => Parallel.ForEach(inputPoints, p =>
+                {
+                    Parsing(expression, p);
+                }));
+                foreach (var item in Points.OrderBy(x => x.Key))
+                {
+                    GraphPoints.Add(new GraphPoint(item.Key, item.Value));
+                }                
             }
             return GraphPoints;
             //await RunTasks(points, expression);

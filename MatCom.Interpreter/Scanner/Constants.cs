@@ -35,6 +35,7 @@ namespace MatCom.Interpreter.Scanner
                 {"abs", "Abs" },
                 {"exp", "Exp" },
                 {"log", "Log" },
+                {"ln", "ln" },
                 {"sqrt", "Sqrt" },
                 {"√", "Sqrt" },
                 {"sin", "Sin"},
@@ -72,7 +73,8 @@ namespace MatCom.Interpreter.Scanner
                 switch (functionName)
                 {
                     case "abs": result = Math.Abs(_value); break;
-                    case "log": result = Math.Log(_value); break;
+                    case "log": result = Math.Log10(_value); break;
+                    case "ln": result = Math.Log(_value); break;
                     case "exp": result = Math.Exp(_value); break;
                     case "sqrt": result = Math.Sqrt(_value); break;
                     case "sin": result = Math.Sin(_value); break;

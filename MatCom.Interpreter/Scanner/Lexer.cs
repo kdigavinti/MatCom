@@ -55,18 +55,18 @@ namespace MatCom.Interpreter.Scanner
                     {
                         TokenList.Add(new Token(TokenType.Operator, match, _currentPosition));
                     }
-                    else if ((match = CheckToken(@"^(sqrt|log|logn|exp|abs|sin|cos|tan|sec|csc|cot)")).Length > 0) //CHECK Functions
+                    else if ((match = CheckToken(@"^(sqrt|log|ln|exp|abs|sin|cos|tan|sec|csc|cot)")).Length > 0) //CHECK Functions
                     {
                         TokenList.Add(new Token(TokenType.Functions, match, _currentPosition));
                     }
                     else if ((match = CheckToken(@"^[a-zA-Z0-9_]*")).Length > 0) //CHECK IDENTIFIERS AND MAKE SURE IT IS NOT A RESSERVED WORD. 
                     {
                         var constant = "";
-                        if (Constants.AllowedConstants.ContainsKey(match) && (constant = Constants.AllowedConstants[match]) != "")
+                        if (Constants.AllowedConstants.ContainsKey(match.ToLower()) && (constant = Constants.AllowedConstants[match.ToLower()]) != "")
                         {
                             TokenList.Add(new Token(TokenType.Constants, constant, _currentPosition));
                         }
-                        else if (Constants.Keywords.ContainsKey(match))
+                        else if (Constants.Keywords.ContainsKey(match.ToLower()))
                         {
                             throw new Exception($"{match} is a reserved word. Variables cannot use reserved words");
                         }

@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MatCom.UI", "MatCom.UI\MatC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MatCom.Interpreter", "MatCom.Interpreter\MatCom.Interpreter.csproj", "{230E0200-8419-49CD-B21A-E3E4EDB9BDB7}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MatCom.ZeroCrossing", "MatCom.ZeroCrossing\MatCom.ZeroCrossing.fsproj", "{8EFC54D6-5776-425B-B41E-BFB6B90A5E52}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{230E0200-8419-49CD-B21A-E3E4EDB9BDB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{230E0200-8419-49CD-B21A-E3E4EDB9BDB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{230E0200-8419-49CD-B21A-E3E4EDB9BDB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8EFC54D6-5776-425B-B41E-BFB6B90A5E52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8EFC54D6-5776-425B-B41E-BFB6B90A5E52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8EFC54D6-5776-425B-B41E-BFB6B90A5E52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8EFC54D6-5776-425B-B41E-BFB6B90A5E52}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

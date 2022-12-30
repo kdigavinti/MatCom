@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MatCom.Interpreter\MatCom.Interpreter.csproj" />
+    <ProjectReference Include="..\MatCom.ZeroCrossing\MatCom.ZeroCrossing.fsproj" />
   </ItemGroup>
 
 </Project>

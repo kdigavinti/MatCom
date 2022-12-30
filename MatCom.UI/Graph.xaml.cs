@@ -18,7 +18,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-
+using MatCom.ZeroCrossing;
 namespace MatCom.UI
 {
     /// <summary>
@@ -615,8 +615,9 @@ namespace MatCom.UI
             List<ZeroCrossingRange> lstZeroCrossingRanges = FindZeroCrossingPointsRange();            
             foreach (ZeroCrossingRange zeroCrossingRange in lstZeroCrossingRanges)
             {
-                string zeroCrossingPoint = Evaluator.RootPolynomial(zeroCrossingRange.X1, zeroCrossingRange.X2, txtF1.Text);
-                if(!string.IsNullOrEmpty(zeroCrossingPoint))
+                //string zeroCrossingPoint = Evaluator.RootPolynomial(zeroCrossingRange.X1, zeroCrossingRange.X2, txtF1.Text);
+                string zeroCrossingPoint = ZeroCrossing.ZeroCrossing.bisection(zeroCrossingRange.X1, zeroCrossingRange.X2, txtF1.Text, 0);
+                if (!string.IsNullOrEmpty(zeroCrossingPoint))
                     _zeroCrossingPoints.Add(new Point(Convert.ToDouble(zeroCrossingPoint), 0));
             }
             AddZeroCrossingPoints(_zeroCrossingPoints);

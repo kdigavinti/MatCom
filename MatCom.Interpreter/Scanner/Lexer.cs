@@ -62,11 +62,11 @@ namespace MatCom.Interpreter.Scanner
                     else if ((match = CheckToken(@"^[a-zA-Z0-9_]*")).Length > 0) //CHECK IDENTIFIERS AND MAKE SURE IT IS NOT A RESSERVED WORD. 
                     {
                         var constant = "";
-                        if (Constants.AllowedConstants.ContainsKey(match) && (constant = Constants.AllowedConstants[match]) != "")
+                        if (Constants.AllowedConstants.ContainsKey(match.ToLower()) && (constant = Constants.AllowedConstants[match.ToLower()]) != "")
                         {
                             TokenList.Add(new Token(TokenType.Constants, constant, _currentPosition));
                         }
-                        else if (Constants.Keywords.ContainsKey(match))
+                        else if (Constants.Keywords.ContainsKey(match.ToLower()))
                         {
                             throw new Exception($"{match} is a reserved word. Variables cannot use reserved words");
                         }

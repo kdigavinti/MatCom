@@ -13,14 +13,14 @@
         <DockPanel Name="dockRight">
             <StackPanel DockPanel.Dock="Right" Orientation="Vertical" Width="250" Background="#F0F4F9" >
 
-                <StackPanel Orientation="Horizontal">
+                <!--<StackPanel Orientation="Horizontal">
 
-                    <!--<Button Content="Left" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Click="BtnLeftPan_Click"  Margin="10,10,0,0" Visibility="Visible" Name="btnLeftPan"/>
-                    <Button Content="Right" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Click="BtnRightPan_Click" Margin="10,10,0,0" Visibility="Visible" Name="btnRightPan"/>-->
+                    <Button Content="Left" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Click="BtnLeftPan_Click"  Margin="10,10,0,0" Visibility="Visible" Name="btnLeftPan"/>
+                    <Button Content="Right" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Click="BtnRightPan_Click" Margin="10,10,0,0" Visibility="Visible" Name="btnRightPan"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
-                </StackPanel>
-                <StackPanel Orientation="Horizontal">
+                </StackPanel>-->
+                <StackPanel Orientation="Vertical">
                     <!--<Label VerticalAlignment="Center" FontSize="18">f1</Label>-->
                     <TextBox FontSize="18" HorizontalAlignment="Center" Margin="10,10,10,10" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="230" KeyDown="TxtF1_KeyDown" Name="txtF1">
                         <TextBox.Resources>
@@ -29,29 +29,33 @@
                             </Style>
                         </TextBox.Resources>
                     </TextBox>
+                    <TextBlock TextWrapping="WrapWithOverflow" Name="txtBlockErrorMessage" VerticalAlignment="Center" FontSize="18" Margin="10,10,10,10" Width="230" Visibility="Collapsed" Foreground="#FFFA0505" FontWeight="Bold">
+                        
+                    </TextBlock>
+                    <Button FontSize="18" Content="Find Zero Crossing" Margin="10,10,10,10" Width="230" Click="BtnZeroCrossing_Click" Visibility="Visible" x:Name="btnZeroCrossing" HorizontalAlignment="Left">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button FontSize="18" Content="Clear Zero Crossing" Margin="10,10,10,10" Width="230" Click="BtnClearZeroCrossing_Click" Visibility="Visible" x:Name="btnClearZeroCrossing" HorizontalAlignment="Left">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button FontSize="18" Content="Reset" Margin="10,10,10,10" Width="230" Click="BtnReset_Click" Visibility="Visible" x:Name="btnReset" HorizontalAlignment="Left">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
 
                 </StackPanel>
-                <Button FontSize="18" Content="Find Zero Crossing" Margin="10,10,10,10" Width="230" Click="BtnZeroCrossing_Click" Visibility="Visible" x:Name="btnZeroCrossing" HorizontalAlignment="Left">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="5"/>
-                        </Style>
-                    </Button.Resources>
-                </Button>
-                <Button FontSize="18" Content="Clear Zero Crossing" Margin="10,10,10,10" Width="230" Click="BtnClearZeroCrossing_Click" Visibility="Visible" x:Name="btnClearZeroCrossing" HorizontalAlignment="Left">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="5"/>
-                        </Style>
-                    </Button.Resources>
-                </Button>
-                <Button FontSize="18" Content="Reset" Margin="10,10,10,10" Width="230" Click="BtnReset_Click" Visibility="Visible" x:Name="btnReset" HorizontalAlignment="Left">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="5"/>
-                        </Style>
-                    </Button.Resources>
-                </Button>
+                
                 <!--<StackPanel Orientation="Horizontal">
                     <Label VerticalAlignment="Center">f2</Label>
                     <TextBox HorizontalAlignment="Left" Margin="0,10,20,10"  TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="220" Name="txtF2"/>

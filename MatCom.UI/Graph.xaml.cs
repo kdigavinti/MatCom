@@ -154,6 +154,8 @@ namespace MatCom.UI
             _stepsToCalculatePoints = 0.1;
             _fitToScreen = true;
             _expressionValues = new List<ExpressionValues>();
+            txtBlockErrorMessage.Text = "";
+            txtBlockErrorMessage.Visibility = Visibility.Collapsed;
         }      
         private void TxtF1_KeyDown(object sender, KeyEventArgs e)
         {
@@ -249,53 +251,63 @@ namespace MatCom.UI
 
         public async Task<List<GraphPoint>> CalculatePoints(string function)
         {
-            List<double> xPoints = new List<double>();
-            decimal x = (decimal) _xOriginalMin;
-            decimal transformX = 0;
-            while (x <= (decimal)_xOriginalMax)
+            try
             {
-                //transformX = _origin.X + (x * _xAxisLinesGap / (_zoomFactor * _steps));
-                transformX = (decimal)_origin.X + (x * (decimal)_xAxisLinesGap / ((decimal)_steps));
-                if (0 <= transformX && transformX <= (decimal)_canvasWidth)
+                List<double> xPoints = new List<double>();
+                decimal x = (decimal)_xOriginalMin;
+                decimal transformX = 0;
+                while (x <= (decimal)_xOriginalMax)
                 {
-                    _xMin = (x < (decimal)_xMin) ? (double)x : _xMin;
-                    _xMax = (x > (decimal)_xMax) ? (double)x : _xMax;
-                    xPoints.Add((double)x);
+                    //transformX = _origin.X + (x * _xAxisLinesGap / (_zoomFactor * _steps));
+                    transformX = (decimal)_origin.X + (x * (decimal)_xAxisLinesGap / ((decimal)_steps));
+                    if (0 <= transformX && transformX <= (decimal)_canvasWidth)
+                    {
+                        _xMin = (x < (decimal)_xMin) ? (double)x : _xMin;
+                        _xMax = (x > (decimal)_xMax) ? (double)x : _xMax;
+                        xPoints.Add((double)x);
+                    }
+                    x = x + (decimal)_stepsToCalculatePoints;
                 }
-                x = x + (decimal)_stepsToCalculatePoints;
-            }
 
-            ExpressionValues expValues = _expressionValues.Where(i => i.Expression == function).FirstOrDefault();
-            List<GraphPoint> graphPoints;
-            Evaluator eval = new Evaluator();
-            if (expValues == null)
-            {
-                //graphPoints = Evaluator.Evaluate((decimal)_xMin, (decimal)_xMax, (decimal)_stepsToCalculatePoints, _expression);
-                await eval.Evaluate(xPoints, _expression);
-                graphPoints = eval.GraphPoints;
-                expValues = new ExpressionValues()
+                ExpressionValues expValues = _expressionValues.Where(i => i.Expression == function).FirstOrDefault();
+                List<GraphPoint> graphPoints;
+                Evaluator eval = new Evaluator();
+                if (expValues == null)
                 {
-                    Expression = _expression,
-                    GraphPoints = graphPoints
-                };
-                //_expressionValues.Clear();
-                _expressionValues.Add(expValues);
-                expValues.GraphPoints.OrderBy(i => i.X);
-            }
-            else
-            {
-                List<double> xPointsToEvaluate = xPoints.Where(x => !expValues.GraphPoints.Any(pt => pt.X == x)).ToList();
-                await eval.Evaluate(xPointsToEvaluate, _expression);
-                graphPoints = eval.GraphPoints;
-                expValues.GraphPoints.AddRange(graphPoints);
-                expValues.GraphPoints = expValues.GraphPoints.DistinctBy(i=>i.X).OrderBy(j => j.X).ToList();
-                graphPoints = expValues.GraphPoints;
-            }
+                    //graphPoints = Evaluator.Evaluate((decimal)_xMin, (decimal)_xMax, (decimal)_stepsToCalculatePoints, _expression);
+                    await eval.Evaluate(xPoints, _expression);
+                    graphPoints = eval.GraphPoints;
+                    expValues = new ExpressionValues()
+                    {
+                        Expression = _expression,
+                        GraphPoints = graphPoints
+                    };
+                    //_expressionValues.Clear();
+                    _expressionValues.Add(expValues);
+                    expValues.GraphPoints.OrderBy(i => i.X);
+                }
+                else
+                {
+                    List<double> xPointsToEvaluate = xPoints.Where(x => !expValues.GraphPoints.Any(pt => pt.X == x)).ToList();
+                    await eval.Evaluate(xPointsToEvaluate, _expression);
+                    graphPoints = eval.GraphPoints;
+                    expValues.GraphPoints.AddRange(graphPoints);
+                    expValues.GraphPoints = expValues.GraphPoints.DistinctBy(i => i.X).OrderBy(j => j.X).ToList();
+                    graphPoints = expValues.GraphPoints;
+                }
                 return graphPoints;
+            }
+            catch(Exception ex)
+            {
+                txtBlockErrorMessage.Text = ex.Message;
+                txtBlockErrorMessage.Visibility = Visibility.Visible;
+                return null;
+            }
+            
         }
 
         private void DawGridLines()
-        {
+        {            
             UIElement btnZoomInEle = (UIElement)chartCanvas.FindName("btnZoomIn");
             UIElement btnZoomOutEle = (UIElement)chartCanvas.FindName("btnZoomOut");
             UIElement btnFitEle = (UIElement)chartCanvas.FindName("btnFit");
@@ -758,10 +770,13 @@ namespace MatCom.UI
                     
                     if (!string.IsNullOrEmpty(_expression))
                     {
-                        List<GraphPoint> graphPoints =await CalculatePoints(_expression);                        
-                        PlotCurve(graphPoints, Brushes.Blue);
-                        ClearZeroCrossingPoints();                        
-                        AddZeroCrossingPoints(_zeroCrossingPoints);
+                        List<GraphPoint> graphPoints =await CalculatePoints(_expression);
+                        if (graphPoints != null)
+                        {
+                            PlotCurve(graphPoints, Brushes.Blue);
+                            ClearZeroCrossingPoints();
+                            AddZeroCrossingPoints(_zeroCrossingPoints);
+                        }                        
                     }
                 }
             }

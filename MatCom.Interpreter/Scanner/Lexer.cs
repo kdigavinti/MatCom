@@ -55,7 +55,7 @@ namespace MatCom.Interpreter.Scanner
                     {
                         TokenList.Add(new Token(TokenType.Operator, match, _currentPosition));
                     }
-                    else if ((match = CheckToken(@"^(sqrt|log|logn|exp|abs|sin|cos|tan|sec|csc|cot)")).Length > 0) //CHECK Functions
+                    else if ((match = CheckToken(@"^(sqrt|log|ln|exp|abs|sin|cos|tan|sec|csc|cot)")).Length > 0) //CHECK Functions
                     {
                         TokenList.Add(new Token(TokenType.Functions, match, _currentPosition));
                     }

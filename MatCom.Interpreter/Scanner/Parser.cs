@@ -205,14 +205,22 @@ namespace MatCom.Interpreter.Scanner
                     NextToken();
                     if (_currToken.value == "(")
                     {
-                        NextToken(); //Skip left parantheses
-                        factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), _currToken.value));
-                        NextToken(); //eat Token )
-                        if(_currToken.value != ")")
+                        if(_expression.Contains(")"))
+                        {
+                            string functionInput = string.Empty;
+                            NextToken();//Skip left parantheses
+                            while (_currToken.value != ")")
+                            {
+                                functionInput += _currToken.value;
+                                NextToken();
+                            }
+                            factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), functionInput));
+                        }
+                        else
                         {
                             throw new Exception($"Closing Parantheses not found at position {_currToken.position}");
                         }
-                        NextToken();
+                        NextToken(); //eat Token )
                     }
                     else
                         throw new Exception($"Invalid Function {_currToken.value} at position {_currToken.position}");

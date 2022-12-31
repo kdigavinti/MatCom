@@ -72,12 +72,6 @@ namespace MatCom.UI
             double newStep = ((_steps * 5).ToString().Contains("5")) ? _steps * 0.4 : _steps * 0.5;
             if (newStep >= 0.001)
             {
-                //if(_xAxisLinesGap <= 80)
-                //{
-                //    _xAxisLinesGap = _xAxisLinesGap + 20;
-                //    _yAxisLinesGap = _yAxisLinesGap + 20;
-                //}
-
                 _zoomFactor = _zoomFactor * 0.5;
                 _steps = newStep;
                 if (_steps == 1) _stepsToCalculatePoints = 0.2;
@@ -112,32 +106,6 @@ namespace MatCom.UI
                 OnZoomOutClick();
             }
         }
-
-        //private void CalStepsToCalculatePoints()
-        //{
-        //    if(_steps == 0.001)
-        //    {
-        //        _stepsToCalculatePoints = 0.0002;
-        //    }
-        //    else if (_steps <= 0.01)
-        //    {
-        //        _stepsToCalculatePoints = 0.002;
-        //    }
-        //    else if (_steps <= 0.1)
-        //    {
-        //        _stepsToCalculatePoints = 0.02;
-        //    }
-        //    else if (_steps <= 0.4)
-        //    {
-        //        _stepsToCalculatePoints = 0.1;
-        //    }
-        //    else if (_steps <= 1)
-        //    {
-        //        _stepsToCalculatePoints = 0.2;
-        //    }
-        //    else
-        //        _stepsToCalculatePoints = _stepsToCalculatePoints * 10;
-        //}
 
         private void BtnFit_Click(object sender, RoutedEventArgs e)
         {            
@@ -179,44 +147,6 @@ namespace MatCom.UI
             }
         }
 
-        
-
-        /*private void ChartCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            base.OnMouseLeftButtonDown(e);
-            CaptureMouse();
-            _start = e.GetPosition(chartCanvas);
-            _isDragged = true;
-        }
-
-        private void ChartCanvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            base.OnMouseLeftButtonUp(e);
-            ReleaseMouseCapture();
-            _isDragged = false;
-        }
-        private void ChartCanvas_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (_isDragged == false)
-                return;
-
-            base.OnMouseMove(e);
-            if (e.LeftButton == MouseButtonState.Pressed && IsMouseCaptured)
-            {
-
-                var pos = e.GetPosition(chartCanvas);
-                _last = pos;
-                _fitToScreen = false;
-
-                System.Windows.Point newOrigin = new System.Windows.Point(_origin.X, _origin.Y);
-
-                newOrigin.X = _origin.X + (_last.X - _start.X) * 0.05;
-                newOrigin.Y = _origin.Y + (_last.Y - _start.Y) * 0.05;
-
-                _origin = newOrigin;
-                PlotGraph();
-            }
-        }*/
         protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
         {
             base.OnMouseLeftButtonDown(e);
@@ -722,16 +652,14 @@ namespace MatCom.UI
             }
             if (txtBlock != null)
                 chartCanvas.Children.Remove(txtBlock);
-            
-            //if (_pathGeometry != null && _pathGeometry.FillContains(p))
+   
             if(_pathGeometry != null && _pathGeometry.StrokeContains(_pen, p))
             {
                 double xPoint = (p.X - _origin.X) * _steps / _xAxisLinesGap;
                 //double yPoint = (_origin.Y - p.Y) * _steps / _yAxisLinesGap;
+                //using parse function to get the precise Y value for the given X value
                 Evaluator evaluator = new Evaluator();
-                double yPoint = evaluator.ParseExpressionForSingleValue(_expression, xPoint);
-                //xPoint = p.X;
-                //yPoint = p.Y;
+                double yPoint = evaluator.ParseExpressionForSingleValue(_expression, xPoint);                
                 TextBlock textBlock = new TextBlock();
                 textBlock.Name = "mouseposition";
                 string precision = (_steps <= 0.5) ? "N6" : "N3";
@@ -742,8 +670,8 @@ namespace MatCom.UI
                 textBlock.Measure(new System.Windows.Size(Double.PositiveInfinity, Double.PositiveInfinity));
                 textBlock.Arrange(new Rect(textBlock.DesiredSize));
                 textBlock.Padding = new Thickness(10);
-                Canvas.SetLeft(textBlock, p.X); //include margin
-                Canvas.SetTop(textBlock, p.Y); //include margin
+                Canvas.SetLeft(textBlock, p.X); 
+                Canvas.SetTop(textBlock, p.Y); 
 
                 chartCanvas.Children.Add(textBlock);
             }
@@ -760,8 +688,6 @@ namespace MatCom.UI
         {
             for (int i = 0; i < axisLabels.Count; i++)
             {
-                //double x = Math.Truncate(axisLabels[i].X * 1000) / 1000;
-                //double y = Math.Truncate(axisLabels[i].Y * 1000) / 1000;
                 AddtextBlock(axisLabels[i].X, axisLabels[i].Y, axisLabels[i].Label, axisLabels[i].Axis);
             }
         }
@@ -830,7 +756,10 @@ namespace MatCom.UI
                         List<GraphPoint> graphPoints =await CalculatePoints(_expression);
                         if (graphPoints != null)
                         {
-                            PlotCurve(graphPoints, Brushes.Blue);
+                            if(_isTrigonometricFunction && !_expression.Contains("sin") && !_expression.Contains("cos"))
+                                PlotTrigonometricCurve(graphPoints, Brushes.Blue);                            
+                            else
+                                PlotCurve(graphPoints, Brushes.Blue);
                             ClearZeroCrossingPoints();
                             AddZeroCrossingPoints(_zeroCrossingPoints);
                         }                        
@@ -840,6 +769,35 @@ namespace MatCom.UI
             catch (Exception)
             {
                 throw;
+            }
+        }
+
+        private void PlotTrigonometricCurve(List<GraphPoint> points, System.Windows.Media.SolidColorBrush color)
+        {
+            if (points == null || (points != null && points.Count == 0)) return;
+            double tolerance = 0.0000001;
+            int initialValue = (_expression.Contains("tan") || _expression.Contains("sec")) ? 1 : 0;
+            for (int idx = -1 * initialValue; ; idx += 2)
+            {
+                if (idx * Math.PI / 2 <= _xMax)
+                {
+                    List<GraphPoint> curvePoints = points.Where(i => i.X > (idx * Math.PI / 2 + tolerance) && i.X < ((idx + 2) * Math.PI / 2 - tolerance)).ToList();
+                    PlotCurve(curvePoints, color);
+                }
+                else
+                    break;
+
+            }
+            for (int idx = -1 * initialValue; ; idx -= 2)
+            {
+                if (idx * Math.PI / 2 >= _xMin)
+                {
+                    List<GraphPoint> curvePoints = points.Where(i => i.X > (idx * Math.PI / 2 + tolerance) && i.X < ((idx + 2) * Math.PI / 2 - tolerance)).ToList();
+                    PlotCurve(curvePoints, color);
+                }
+                else
+                    break;
+
             }
         }
 
@@ -860,10 +818,8 @@ namespace MatCom.UI
                         points.Add(new System.Windows.Point(xPoint, yPoint));
                 }
             }
-            if (_isTrigonometricFunction)            
-                DrawBezierCurveForTrigonometry(points, color);            
-            else
-                DrawBezierCurve(points, color);
+            
+            DrawBezierCurve(points, color);
         }
 
         private void DrawBezierCurve(List<System.Windows.Point> points, System.Windows.Media.SolidColorBrush color)
@@ -926,35 +882,6 @@ namespace MatCom.UI
             _pathGeometry = pathGeometry;
             
             Canvas.SetZIndex(path, 1);
-        }
-
-        private void DrawBezierCurveForTrigonometry(List<System.Windows.Point> points, System.Windows.Media.SolidColorBrush color)
-        {
-            if (points == null || (points != null && points.Count == 0)) return;
-
-            int arrayLen = points.Where(i => i.Y > 500000 || i.Y<-500000).ToList().Count + 1;
-            
-            List<System.Windows.Point>[] trigoPoints = new List<System.Windows.Point>[arrayLen];
-            int idx = 0;
-            trigoPoints[idx] = new List<System.Windows.Point>();
-            foreach (Point p in points)
-            {
-                trigoPoints[idx].Add(p);
-                if (p.Y>500000 || p.Y < -500000)
-                {
-                    idx++;
-                    trigoPoints[idx] = new List<System.Windows.Point>();
-                    trigoPoints[idx].Add(p);
-                }
-                
-            }
-            //DrawBezierCurve(trigoPoints[0], color);
-            //DrawBezierCurve(trigoPoints[1], Brushes.Red);
-            foreach (List<System.Windows.Point> trigPoints in trigoPoints)
-            {
-                DrawBezierCurve(trigPoints, color);
-            }
-
         }
     }
 }

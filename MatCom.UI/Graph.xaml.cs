@@ -44,6 +44,7 @@ namespace MatCom.UI
         PathGeometry _pathGeometry;
         Pen _pen = new Pen(new SolidColorBrush(),1);
         List<Point> _zeroCrossingPoints = new List<Point>();
+        bool _isTrigonometricFunction = false;
 
         public Graph()
         {
@@ -55,7 +56,7 @@ namespace MatCom.UI
             this.SizeChanged += (sender, e) => PlotGraph();
             _expressionValues = new List<ExpressionValues>();
         }
-
+       
         private void BtnZoomIn_Click(object sender, RoutedEventArgs e)
         {
             OnZoomInClick();
@@ -164,6 +165,12 @@ namespace MatCom.UI
                 if (!string.IsNullOrEmpty(txtF1.Text.Trim()))
                 {
                     _expression = txtF1.Text.Trim();
+                    string exp = _expression.ToLower();
+                    if (exp.Contains("sin") || exp.Contains("cos") || exp.Contains("tan")
+                     || exp.Contains("sec") || exp.Contains("csc") || exp.Contains("cot"))
+                        _isTrigonometricFunction = true;
+                    else 
+                        _isTrigonometricFunction = false;
                     ResetValues();
                     _zeroCrossingPoints.Clear();
                     PlotGraph();
@@ -248,7 +255,45 @@ namespace MatCom.UI
 
         }
 
+        public async Task<List<double>> GetPointsForTrigonometricFunctions()
+        {
+            List<double> xPoints = new List<double>();
+            int initialValue = (_expression.Contains("tan") || _expression.Contains("sec")) ? 1 : 0;
+            for (int i= initialValue; ; i+= 2)
+            {
+                if (i * Math.PI / 2 <= _xMax)
+                {
+                    xPoints.Add(i * Math.PI / 2 - 0.0000001);
+                    xPoints.Add(i * Math.PI / 2 + 0.0000001);
 
+                    xPoints.Add(i * Math.PI / 2 - 0.0001);
+                    xPoints.Add(i * Math.PI / 2 + 0.0001);
+
+                    xPoints.Add(i * Math.PI / 2 - 0.001);
+                    xPoints.Add(i * Math.PI / 2 + 0.001);
+                }
+                else
+                    break;
+            }
+            for (int i = -1* initialValue; ; i -= 2)
+            {
+                if (i * Math.PI / 2 >= _xMin)
+                {
+                    
+                    xPoints.Add(i * Math.PI / 2 - 0.0000001);
+                    xPoints.Add(i * Math.PI / 2 + 0.0000001);
+                    
+                    xPoints.Add(i * Math.PI / 2 - 0.0001);
+                    xPoints.Add(i * Math.PI / 2 + 0.0001);
+
+                    xPoints.Add(i * Math.PI / 2 - 0.001);
+                    xPoints.Add(i * Math.PI / 2 + 0.001);
+                }
+                else
+                    break;
+            }
+            return xPoints;
+        }
         public async Task<List<GraphPoint>> CalculatePoints(string function)
         {
             try
@@ -256,6 +301,10 @@ namespace MatCom.UI
                 List<double> xPoints = new List<double>();
                 decimal x = (decimal)_xOriginalMin;
                 decimal transformX = 0;
+                if (_isTrigonometricFunction && _steps<=50)
+                {
+                    _stepsToCalculatePoints = 0.1;
+                }
                 while (x <= (decimal)_xOriginalMax)
                 {
                     //transformX = _origin.X + (x * _xAxisLinesGap / (_zoomFactor * _steps));
@@ -268,7 +317,10 @@ namespace MatCom.UI
                     }
                     x = x + (decimal)_stepsToCalculatePoints;
                 }
-
+                if (_isTrigonometricFunction && !_expression.Contains("sin") && !_expression.Contains("cos"))
+                {
+                    xPoints.AddRange(await GetPointsForTrigonometricFunctions());
+                }
                 ExpressionValues expValues = _expressionValues.Where(i => i.Expression == function).FirstOrDefault();
                 List<GraphPoint> graphPoints;
                 Evaluator eval = new Evaluator();
@@ -284,17 +336,21 @@ namespace MatCom.UI
                     };
                     //_expressionValues.Clear();
                     _expressionValues.Add(expValues);
-                    expValues.GraphPoints.OrderBy(i => i.X);
+                    //expValues.GraphPoints.OrderBy(i => i.X);
                 }
                 else
                 {
                     List<double> xPointsToEvaluate = xPoints.Where(x => !expValues.GraphPoints.Any(pt => pt.X == x)).ToList();
                     await eval.Evaluate(xPointsToEvaluate, _expression);
                     graphPoints = eval.GraphPoints;
-                    expValues.GraphPoints.AddRange(graphPoints);
-                    expValues.GraphPoints = expValues.GraphPoints.DistinctBy(i => i.X).OrderBy(j => j.X).ToList();
-                    graphPoints = expValues.GraphPoints;
+                    expValues.GraphPoints.AddRange(graphPoints);                    
                 }
+                //if (_expression.ToLower().Contains("tan"))
+                //{
+                //    expValues.GraphPoints.Add(new GraphPoint(Math.PI/2,Math.Tan(Math.PI/2)));
+                //}
+                expValues.GraphPoints = expValues.GraphPoints.DistinctBy(i => i.X).OrderBy(j => j.X).ToList();
+                graphPoints = expValues.GraphPoints;
                 return graphPoints;
             }
             catch(Exception ex)
@@ -475,7 +531,7 @@ namespace MatCom.UI
                 x = x + _yAxisLinesGap;
 
             }
-            _xOriginalMax = _xOriginalMax + _steps * 10;
+            _xOriginalMax = _steps * (idx+1) * 5;
             AddAxisLabels(axisLabels);
         }
 
@@ -515,7 +571,7 @@ namespace MatCom.UI
                 x = x - _yAxisLinesGap;
             }
             AddAxisLabels(axisLabels);
-            _xOriginalMin = _xOriginalMin - _steps * 20;
+            _xOriginalMin = -1 * _steps * (idx+1) * 5;
         }
         private void ClearZeroCrossingPoints()
         {            
@@ -615,8 +671,8 @@ namespace MatCom.UI
             List<ZeroCrossingRange> lstZeroCrossingRanges = FindZeroCrossingPointsRange();            
             foreach (ZeroCrossingRange zeroCrossingRange in lstZeroCrossingRanges)
             {
-                //string zeroCrossingPoint = Evaluator.RootPolynomial(zeroCrossingRange.X1, zeroCrossingRange.X2, txtF1.Text);
-                string zeroCrossingPoint = ZeroCrossing.ZeroCrossing.bisection(zeroCrossingRange.X1, zeroCrossingRange.X2, txtF1.Text, 0);
+                string zeroCrossingPoint = Evaluator.RootPolynomial(zeroCrossingRange.X1, zeroCrossingRange.X2, txtF1.Text);
+                //string zeroCrossingPoint = ZeroCrossing.ZeroCrossing.bisection(zeroCrossingRange.X1, zeroCrossingRange.X2, txtF1.Text, 0);
                 if (!string.IsNullOrEmpty(zeroCrossingPoint))
                     _zeroCrossingPoints.Add(new Point(Convert.ToDouble(zeroCrossingPoint), 0));
             }
@@ -792,15 +848,22 @@ namespace MatCom.UI
             List<System.Windows.Point> points = new List<System.Windows.Point>();
             foreach (var value in values)
             {
-                //double xPoint = _origin.X + (value.X * _xAxisLinesGap / (_zoomFactor * _steps));
-                //double yPoint = _origin.Y - (value.Y * _yAxisLinesGap / (_zoomFactor * _steps));
                 double xPoint = _origin.X + (value.X * _xAxisLinesGap / (_steps));
                 double yPoint = _origin.Y - (value.Y * _yAxisLinesGap / (_steps));
-                if(xPoint>=0 && xPoint<=_canvasWidth && yPoint>=-2*_canvasHeight && yPoint<=2*_canvasHeight)
+                if (_isTrigonometricFunction)
+                {
                     points.Add(new System.Windows.Point(xPoint, yPoint));
-
+                }
+                else
+                {
+                    if (xPoint >= 0 && xPoint <= _canvasWidth && yPoint >= -2 * _canvasHeight && yPoint <= 2 * _canvasHeight)
+                        points.Add(new System.Windows.Point(xPoint, yPoint));
+                }
             }
-            DrawBezierCurve(points, color);
+            if (_isTrigonometricFunction)            
+                DrawBezierCurveForTrigonometry(points, color);            
+            else
+                DrawBezierCurve(points, color);
         }
 
         private void DrawBezierCurve(List<System.Windows.Point> points, System.Windows.Media.SolidColorBrush color)
@@ -863,6 +926,35 @@ namespace MatCom.UI
             _pathGeometry = pathGeometry;
             
             Canvas.SetZIndex(path, 1);
+        }
+
+        private void DrawBezierCurveForTrigonometry(List<System.Windows.Point> points, System.Windows.Media.SolidColorBrush color)
+        {
+            if (points == null || (points != null && points.Count == 0)) return;
+
+            int arrayLen = points.Where(i => i.Y > 500000 || i.Y<-500000).ToList().Count + 1;
+            
+            List<System.Windows.Point>[] trigoPoints = new List<System.Windows.Point>[arrayLen];
+            int idx = 0;
+            trigoPoints[idx] = new List<System.Windows.Point>();
+            foreach (Point p in points)
+            {
+                trigoPoints[idx].Add(p);
+                if (p.Y>500000 || p.Y < -500000)
+                {
+                    idx++;
+                    trigoPoints[idx] = new List<System.Windows.Point>();
+                    trigoPoints[idx].Add(p);
+                }
+                
+            }
+            //DrawBezierCurve(trigoPoints[0], color);
+            //DrawBezierCurve(trigoPoints[1], Brushes.Red);
+            foreach (List<System.Windows.Point> trigPoints in trigoPoints)
+            {
+                DrawBezierCurve(trigPoints, color);
+            }
+
         }
     }
 }

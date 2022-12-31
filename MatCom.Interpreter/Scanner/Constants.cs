@@ -67,11 +67,13 @@ namespace MatCom.Interpreter.Scanner
 
         public static double FunctionValue(string functionName, string value)
         {
+            Parser parser = new Parser();
+            value = parser.Parse(value);
             double _value = 0;
             double result = 0;
             if (double.TryParse(value, out _value))
             {                
-                switch (functionName)
+                switch (functionName.ToLower())
                 {
                     case "abs": result = Math.Abs(_value); break;
                     case "log": result = Math.Log10(_value); break;

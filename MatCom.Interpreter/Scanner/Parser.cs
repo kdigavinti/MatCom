@@ -19,6 +19,7 @@ namespace MatCom.Interpreter.Scanner
         List<Token> Tokens;
         int _currentPosition = 0;
         public Environment _environment;
+        private string _expression { get; set; }
         //private string expression { get; set; }
 
         public Parser()
@@ -32,6 +33,7 @@ namespace MatCom.Interpreter.Scanner
 
         public string Parse(string text)
         {
+            _expression = text;
            Lexer lexer = new Lexer(text);
             _currentPosition = 0;
             Tokens = lexer.Tokenize();
@@ -76,6 +78,14 @@ namespace MatCom.Interpreter.Scanner
             AST? expression;
             if (this._currToken.type == TokenType.Identifier && Tokens[_currentPosition].value == "=")
             {
+                //Assign the environment values. 
+                string[] split = _expression.Split("=");
+                if (split.Length > 1)
+                { 
+                    string left = split[0].Trim();
+                    string right = split[1].Trim();
+                    _environment.assignValueByRef(left, right);
+                }
                return Assignment();
             }
             else 
@@ -195,14 +205,22 @@ namespace MatCom.Interpreter.Scanner
                     NextToken();
                     if (_currToken.value == "(")
                     {
-                        NextToken(); //Skip left parantheses
-                        factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), _currToken.value));
-                        NextToken(); //eat Token )
-                        if(_currToken.value != ")")
+                        if(_expression.Contains(")"))
+                        {
+                            string functionInput = string.Empty;
+                            NextToken();//Skip left parantheses
+                            while (_currToken.value != ")")
+                            {
+                                functionInput += _currToken.value;
+                                NextToken();
+                            }
+                            factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), functionInput));
+                        }
+                        else
                         {
                             throw new Exception($"Closing Parantheses not found at position {_currToken.position}");
                         }
-                        NextToken();
+                        NextToken(); //eat Token )
                     }
                     else
                         throw new Exception($"Invalid Function {_currToken.value} at position {_currToken.position}");

@@ -39,7 +39,7 @@ namespace MatCom.UI
 
         System.Windows.Point _last, _start;
         bool _isDragged = false, _fitToScreen = true;
-        string _expression;
+        string _expression, _expressionWithoutSpaces;
         List<ExpressionValues> _expressionValues;
         PathGeometry _pathGeometry;
         Pen _pen = new Pen(new SolidColorBrush(),1);
@@ -133,9 +133,10 @@ namespace MatCom.UI
                 if (!string.IsNullOrEmpty(txtF1.Text.Trim()))
                 {
                     _expression = txtF1.Text.Trim();
-                    string exp = _expression.ToLower();
-                    if (exp.Contains("sin") || exp.Contains("cos") || exp.Contains("tan")
-                     || exp.Contains("sec") || exp.Contains("csc") || exp.Contains("cot"))
+                    _expressionWithoutSpaces = _expression.ToLower().Replace(" ", "");
+                    //string exp = _expression.ToLower();
+                    if (_expressionWithoutSpaces.Contains("sin") || _expressionWithoutSpaces.Contains("cos") || _expressionWithoutSpaces.Contains("tan")
+                     || _expressionWithoutSpaces.Contains("sec") || _expressionWithoutSpaces.Contains("csc") || _expressionWithoutSpaces.Contains("cot"))
                         _isTrigonometricFunction = true;
                     else 
                         _isTrigonometricFunction = false;
@@ -188,8 +189,9 @@ namespace MatCom.UI
         public async Task<List<double>> GetPointsForTrigonometricFunctions()
         {
             List<double> xPoints = new List<double>();
-            int initialValue = (_expression.Contains("tan") || _expression.Contains("sec")) ? 1 : 0;
-            for (int i= initialValue; ; i+= 2)
+            //int initialValue = (_expression.Contains("tan") || _expression.Contains("sec")) ? 1 : 0;
+            int initialValue = 0;
+            for (int i= initialValue; ; i+= 1)
             {
                 if (i * Math.PI / 2 <= _xMax)
                 {
@@ -205,7 +207,7 @@ namespace MatCom.UI
                 else
                     break;
             }
-            for (int i = -1* initialValue; ; i -= 2)
+            for (int i = -1* initialValue; ; i -= 1)
             {
                 if (i * Math.PI / 2 >= _xMin)
                 {
@@ -247,7 +249,7 @@ namespace MatCom.UI
                     }
                     x = x + (decimal)_stepsToCalculatePoints;
                 }
-                if (_isTrigonometricFunction && !_expression.Contains("sin") && !_expression.Contains("cos"))
+                if (_isTrigonometricFunction && _expressionWithoutSpaces!="sin(x)" && _expression!="cos(x)")
                 {
                     xPoints.AddRange(await GetPointsForTrigonometricFunctions());
                 }
@@ -678,6 +680,11 @@ namespace MatCom.UI
             
         }
 
+        private void BtnDifferentiation_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
         private string FormatLabel(double val)
         {
             return val.ToString("N3").TrimEnd('0').TrimEnd('.');
@@ -756,7 +763,7 @@ namespace MatCom.UI
                         List<GraphPoint> graphPoints =await CalculatePoints(_expression);
                         if (graphPoints != null)
                         {
-                            if(_isTrigonometricFunction && !_expression.Contains("sin") && !_expression.Contains("cos"))
+                            if(_isTrigonometricFunction && _expressionWithoutSpaces!= "sin(x)" && _expressionWithoutSpaces!="cos(x)")
                                 PlotTrigonometricCurve(graphPoints, Brushes.Blue);                            
                             else
                                 PlotCurve(graphPoints, Brushes.Blue);
@@ -798,7 +805,7 @@ namespace MatCom.UI
                 else
                     break;
 
-            }
+            }            
         }
 
         private void PlotCurve(List<GraphPoint> values, System.Windows.Media.SolidColorBrush color)

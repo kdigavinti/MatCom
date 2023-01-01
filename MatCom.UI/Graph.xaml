@@ -33,6 +33,26 @@
                         
                     </TextBlock>
                     <StackPanel Orientation="Horizontal">
+                        <TextBlock TextWrapping="WrapWithOverflow" Name="txtBlockFindDiffOver" VerticalAlignment="Center" FontSize="18" Margin="10,10,10,10" Width="110" >
+                            Find Diff Over
+                        </TextBlock>
+                        <TextBox FontSize="18" HorizontalAlignment="Center" Margin="10,10,10,10" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="100" Name="txtFindDiffOverValue">
+                            <TextBox.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="5"/>
+                                </Style>
+                            </TextBox.Resources>
+                        </TextBox>
+                    </StackPanel>
+                    
+                    <Button FontSize="18" Content="Differentiation" Margin="10,10,10,10" Width="230" Click="BtnDifferentiation_Click" Visibility="Visible" x:Name="btnDifferentiation" HorizontalAlignment="Left">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <StackPanel Orientation="Horizontal">
                         <Button FontSize="18" Content="Zero Crossing" Margin="10,10,10,10" Width="140" Click="BtnZeroCrossing_Click" Visibility="Visible" x:Name="btnZeroCrossing" HorizontalAlignment="Left">
                             <Button.Resources>
                                 <Style TargetType="Border">

@@ -42,6 +42,10 @@ namespace MatCom.UI
             {
                 txtInput.Text = txtInput.Text.StartsWith("-") ? txtInput.Text.Substring(1) : "-" + txtInput.Text;
             }
+            else if (tag.StartsWith("deg-"))
+            {
+                txtInput.Text = tag.Substring(4);
+            }
             else
             {
                 if (txtInput.Text.Contains("()"))
@@ -65,7 +69,7 @@ namespace MatCom.UI
         private void TxtInput_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
-            {
+            {  
                 EvaluateExpression(txtInput.Text);
             }
         }

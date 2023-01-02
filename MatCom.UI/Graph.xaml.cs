@@ -598,7 +598,9 @@ namespace MatCom.UI
             _xOriginalMin = -1 * _steps * (idx+1) * 5;
         }
         private void ClearZeroCrossingPoints()
-        {            
+        {
+            txtBlockErrorMessage.Text = "";
+            txtBlockErrorMessage.Visibility = Visibility.Collapsed;
             for (int i = 0; i < chartCanvas.Children.Count; i++)
             {
                 UIElement element = chartCanvas.Children[i];
@@ -698,12 +700,26 @@ namespace MatCom.UI
                 List<ZeroCrossingRange> lstZeroCrossingRanges = FindZeroCrossingPointsRange();
                 foreach (ZeroCrossingRange zeroCrossingRange in lstZeroCrossingRanges)
                 {
-                    //string zeroCrossingPoint = Evaluator.RootPolynomial(zeroCrossingRange.X1, zeroCrossingRange.X2, txtF1.Text);
-                    string zeroCrossingPoint = ZeroCrossing.ZeroCrossing.bisection(zeroCrossingRange.X1, zeroCrossingRange.X2, txtF1.Text, 0);
-                    if (!string.IsNullOrEmpty(zeroCrossingPoint))
-                        _zeroCrossingPoints.Add(new Point(Convert.ToDouble(zeroCrossingPoint), 0));
+                    try
+                    {
+                        //string zeroCrossingPoint = Evaluator.RootPolynomial(zeroCrossingRange.X1, zeroCrossingRange.X2, txtF1.Text);
+                        string zeroCrossingPoint = ZeroCrossing.ZeroCrossing.bisection(zeroCrossingRange.X1, zeroCrossingRange.X2, txtF1.Text, 0);
+                        if (!string.IsNullOrEmpty(zeroCrossingPoint))
+                            _zeroCrossingPoints.Add(new Point(Convert.ToDouble(zeroCrossingPoint), 0));
+                    }
+                    catch(DivideByZeroException ex)
+                    {
+                        _zeroCrossingPoints.Add(new Point(Math.Round((zeroCrossingRange.X1+ zeroCrossingRange.X2)/2,4), 0));
+                    }
+                    
                 }
-                AddZeroCrossingPoints(_zeroCrossingPoints);
+                if(_zeroCrossingPoints.Count>0)
+                    AddZeroCrossingPoints(_zeroCrossingPoints);
+                else
+                {                   
+                    txtBlockErrorMessage.Text = "No points found for Zero Crossing";
+                    txtBlockErrorMessage.Visibility = Visibility.Visible;
+                }
             }
             catch(DivideByZeroException ex)
             {

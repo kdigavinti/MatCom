@@ -5,11 +5,11 @@ open System
 
 module ZeroCrossing =
     let rec bisection (left : double, right : double, expression : string, iterations: int) =
-        let tolerance = 0.00001
+        let tolerance = 0.0001
         if (Evaluator.ParseFunction(expression, left) * Evaluator.ParseFunction(expression, right) > 0) then
             ""
         else
-            let mid = (left + right)/2.0
+            let mid = Math.Round((left + right)/2.0,4)
             let yMid = Evaluator.ParseFunction(expression, mid)            
             if(Math.Abs(yMid) >= tolerance && iterations < 500) then
                 if(Evaluator.ParseFunction(expression, mid) = 0.0) then

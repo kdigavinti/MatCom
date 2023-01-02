@@ -194,9 +194,10 @@ namespace MatCom.UI
             bool infinityAtNinty = false;
             bool infinityAt180 = false;
             bool isNan = false;
+            List<double> xPoints = new List<double>();
+            Evaluator eval = new Evaluator();
             if (_isTrigonometricFunction)
-            {
-                Evaluator eval = new Evaluator();
+            {                
                 double res = eval.ParseExpressionForSingleValue(_expression, 0);
                 if (double.IsNaN(res))
                 {
@@ -217,57 +218,71 @@ namespace MatCom.UI
                     _isInfinityCurve = true;
                     infinityAtNinty = true;
                 }
-                
-            }
-            List<double> xPoints = new List<double>();
-            if (isNan) return xPoints;
-            if (infinityAtZero || infinityAtNinty || (!infinityAtZero && !infinityAtNinty))
-            //if (infinityAtZero || infinityAtNinty)
-            {
-                int initialValue = ((infinityAtZero) || (!infinityAtZero && !infinityAtNinty)) ? 0 : 1;
-                int increment = ((infinityAtZero && infinityAtNinty) || (!infinityAtZero && !infinityAtNinty)) ? 1 : 2;
-                //int initialValue = ((infinityAtZero)) ? 0 : 1;
-                //int increment = ((infinityAtZero && infinityAtNinty)) ? 1 : 2;
 
-                for (int i = initialValue; ; i += increment)
+                
+                if (isNan) return xPoints;
+                if (infinityAtZero || infinityAtNinty || (!infinityAtZero && !infinityAtNinty))
+                //if (infinityAtZero || infinityAtNinty)
                 {
-                    if (i * Math.PI / 2 <= _xMax)
+                    int initialValue = ((infinityAtZero) || (!infinityAtZero && !infinityAtNinty)) ? 0 : 1;
+                    int increment = ((infinityAtZero && infinityAtNinty) || (!infinityAtZero && !infinityAtNinty)) ? 1 : 2;
+                    //int initialValue = ((infinityAtZero)) ? 0 : 1;
+                    //int increment = ((infinityAtZero && infinityAtNinty)) ? 1 : 2;
+
+                    for (int i = initialValue; ; i += increment)
                     {
-                        if (i != 0)
+                        if (i * Math.PI / 2 <= _xMax)
+                        {
+                            if (i != 0)
+                            {
+                                xPoints.Add(i * Math.PI / 2 - 0.0000001);
+                                xPoints.Add(i * Math.PI / 2 + 0.0000001);
+                            }
+
+                            xPoints.Add(i * Math.PI / 2 - 0.0001);
+                            xPoints.Add(i * Math.PI / 2 + 0.0001);
+
+                            xPoints.Add(i * Math.PI / 2 - 0.001);
+                            xPoints.Add(i * Math.PI / 2 + 0.001);
+
+                        }
+                        else
+                            break;
+                    }
+                    initialValue = ((infinityAtNinty) || (!infinityAtZero && !infinityAtNinty)) ? -1 : -2;
+                    //initialValue = ((infinityAtNinty)) ? -1 : -2;
+                    for (int i = initialValue; ; i -= increment)
+                    {
+                        if (i * Math.PI / 2 >= _xMin)
                         {
                             xPoints.Add(i * Math.PI / 2 - 0.0000001);
                             xPoints.Add(i * Math.PI / 2 + 0.0000001);
+
+                            xPoints.Add(i * Math.PI / 2 - 0.0001);
+                            xPoints.Add(i * Math.PI / 2 + 0.0001);
+
+                            xPoints.Add(i * Math.PI / 2 - 0.001);
+                            xPoints.Add(i * Math.PI / 2 + 0.001);
                         }
-
-                        xPoints.Add(i * Math.PI / 2 - 0.0001);
-                        xPoints.Add(i * Math.PI / 2 + 0.0001);
-
-                        xPoints.Add(i * Math.PI / 2 - 0.001);
-                        xPoints.Add(i * Math.PI / 2 + 0.001);
-
+                        else
+                            break;
                     }
-                    else
-                        break;
-                }
-                initialValue = ((infinityAtNinty) || (!infinityAtZero && !infinityAtNinty)) ? -1 : -2;
-                //initialValue = ((infinityAtNinty)) ? -1 : -2;
-                for (int i = initialValue; ; i -= increment)
-                {
-                    if (i * Math.PI / 2 >= _xMin)
-                    {
-                        xPoints.Add(i * Math.PI / 2 - 0.0000001);
-                        xPoints.Add(i * Math.PI / 2 + 0.0000001);
-
-                        xPoints.Add(i * Math.PI / 2 - 0.0001);
-                        xPoints.Add(i * Math.PI / 2 + 0.0001);
-
-                        xPoints.Add(i * Math.PI / 2 - 0.001);
-                        xPoints.Add(i * Math.PI / 2 + 0.001);
-                    }
-                    else
-                        break;
                 }
             }
+            else
+            {
+                double res = eval.ParseExpressionForSingleValue(_expression, 0);
+                if (double.IsNaN(res))
+                {                      
+
+                    xPoints.Add(0 - 0.01);
+                    xPoints.Add(0 + 0.01);
+
+                    xPoints.Add(0 - 0.05);
+                    xPoints.Add(0 + 0.05);
+                }
+            }
+            
             
             return xPoints;
         }
@@ -294,7 +309,7 @@ namespace MatCom.UI
                     }
                     x = x + (decimal)_stepsToCalculatePoints;
                 }
-                if (_isInfinityCurve || _isTrigonometricFunction)
+                //if (_isInfinityCurve || _isTrigonometricFunction)
                 {
                     xPoints.AddRange(await GetPointsForTrigonometricFunctions());
                 }
@@ -306,6 +321,22 @@ namespace MatCom.UI
                     //graphPoints = Evaluator.Evaluate((decimal)_xMin, (decimal)_xMax, (decimal)_stepsToCalculatePoints, _expression);
                     await eval.Evaluate(xPoints, _expression);
                     graphPoints = eval.GraphPoints;
+                    var nanPoints = graphPoints.Where(i => double.IsNaN(i.Y)).ToList();
+                    if (nanPoints.Count > 0)
+                    {
+                        xPoints = new List<double>();
+                        foreach (GraphPoint p in nanPoints)
+                        {
+                            xPoints.Add(p.X - 0.01);
+                            xPoints.Add(p.X + 0.01);
+
+                            xPoints.Add(p.X - 0.015);
+                            xPoints.Add(p.X + 0.015);
+                        }
+                        await eval.Evaluate(xPoints, _expression);
+                        graphPoints.AddRange(eval.GraphPoints);
+                    }
+                    
                     expValues = new ExpressionValues()
                     {
                         Expression = _expression,
@@ -320,6 +351,21 @@ namespace MatCom.UI
                     List<double> xPointsToEvaluate = xPoints.Where(x => !expValues.GraphPoints.Any(pt => pt.X == x)).ToList();
                     await eval.Evaluate(xPointsToEvaluate, _expression);
                     graphPoints = eval.GraphPoints;
+                    var nanPoints = graphPoints.Where(i => double.IsNaN(i.Y)).ToList();
+                    if (nanPoints.Count > 0)
+                    {
+                        xPoints = new List<double>();
+                        foreach (GraphPoint p in nanPoints)
+                        {
+                            xPoints.Add(p.X - 0.01);
+                            xPoints.Add(p.X + 0.01);
+
+                            xPoints.Add(p.X - 0.015);
+                            xPoints.Add(p.X + 0.015);
+                        }
+                        await eval.Evaluate(xPoints, _expression);
+                        graphPoints.AddRange(eval.GraphPoints);
+                    }
                     expValues.GraphPoints.AddRange(graphPoints);                    
                 }
                 //if (_expression.ToLower().Contains("tan"))
@@ -328,6 +374,7 @@ namespace MatCom.UI
                 //}
                 expValues.GraphPoints = expValues.GraphPoints.DistinctBy(i => i.X).OrderBy(j => j.X).ToList();
                 graphPoints = expValues.GraphPoints;
+
                 return graphPoints;
             }
             catch(Exception ex)
@@ -644,17 +691,30 @@ namespace MatCom.UI
         }
         private void BtnZeroCrossing_Click(object sender, RoutedEventArgs e)
         {
-            ClearZeroCrossingPoints();
-            _zeroCrossingPoints.Clear();
-            List<ZeroCrossingRange> lstZeroCrossingRanges = FindZeroCrossingPointsRange();            
-            foreach (ZeroCrossingRange zeroCrossingRange in lstZeroCrossingRanges)
+            try
             {
-                //string zeroCrossingPoint = Evaluator.RootPolynomial(zeroCrossingRange.X1, zeroCrossingRange.X2, txtF1.Text);
-                string zeroCrossingPoint = ZeroCrossing.ZeroCrossing.bisection(zeroCrossingRange.X1, zeroCrossingRange.X2, txtF1.Text, 0);
-                if (!string.IsNullOrEmpty(zeroCrossingPoint))
-                    _zeroCrossingPoints.Add(new Point(Convert.ToDouble(zeroCrossingPoint), 0));
+                ClearZeroCrossingPoints();
+                _zeroCrossingPoints.Clear();
+                List<ZeroCrossingRange> lstZeroCrossingRanges = FindZeroCrossingPointsRange();
+                foreach (ZeroCrossingRange zeroCrossingRange in lstZeroCrossingRanges)
+                {
+                    //string zeroCrossingPoint = Evaluator.RootPolynomial(zeroCrossingRange.X1, zeroCrossingRange.X2, txtF1.Text);
+                    string zeroCrossingPoint = ZeroCrossing.ZeroCrossing.bisection(zeroCrossingRange.X1, zeroCrossingRange.X2, txtF1.Text, 0);
+                    if (!string.IsNullOrEmpty(zeroCrossingPoint))
+                        _zeroCrossingPoints.Add(new Point(Convert.ToDouble(zeroCrossingPoint), 0));
+                }
+                AddZeroCrossingPoints(_zeroCrossingPoints);
             }
-            AddZeroCrossingPoints(_zeroCrossingPoints);
+            catch(DivideByZeroException ex)
+            {
+
+            }
+            catch(Exception ex)
+            {
+                txtBlockErrorMessage.Text = ex.Message;
+                txtBlockErrorMessage.Visibility = Visibility.Visible;                
+            }
+            
         }
 
         private void BtnClearZeroCrossing_Click(object sender, RoutedEventArgs e)
@@ -824,9 +884,10 @@ namespace MatCom.UI
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                txtBlockErrorMessage.Text = ex.Message;
+                txtBlockErrorMessage.Visibility = Visibility.Visible;                
             }
         }
 
@@ -902,7 +963,7 @@ namespace MatCom.UI
                 }
                 else
                 {
-                    if (xPoint >= 0 && xPoint <= _canvasWidth && yPoint >= -2 * _canvasHeight && yPoint <= 2 * _canvasHeight)
+                    if (xPoint >= -_canvasWidth && xPoint <= _canvasWidth && yPoint >= -5 * _canvasHeight && yPoint <= 5 * _canvasHeight)
                         points.Add(new System.Windows.Point(xPoint, yPoint));
                 }
             }

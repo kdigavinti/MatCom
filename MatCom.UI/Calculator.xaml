@@ -43,7 +43,7 @@
                         <RowDefinition></RowDefinition>
                         <RowDefinition></RowDefinition>
                         <RowDefinition></RowDefinition>
-                        <RowDefinition></RowDefinition>
+                        <!--<RowDefinition></RowDefinition>-->
                     </Grid.RowDefinitions>
                     <TextBox Name="txtInput" Grid.Row="0" Grid.ColumnSpan="3" KeyUp="TxtInput_KeyUp" FontSize="16" Margin="3,3,1.5,1.5">
                         <TextBox.Resources>
@@ -361,7 +361,7 @@
                         </Button.Resources>
                     </Button>
 
-                    <Button Grid.Column="0" Grid.Row="7" FontSize="18" Name="btnSinDeg" Click="BtnAll_Click" Tag="deg-sin()" Margin="1.5,1.5,3,1.5" Background="#FFE9E9E9">
+                    <!--<Button Grid.Column="0" Grid.Row="7" FontSize="18" Name="btnSinDeg" Click="BtnAll_Click" Tag="deg-sin()" Margin="1.5,1.5,3,1.5" Background="#FFE9E9E9">
                         <TextBlock>
                             <Run>sin</Run>
                             <Run BaselineAlignment="Subscript" FontSize="14">d</Run>
@@ -426,7 +426,7 @@
                                 <Setter Property="CornerRadius" Value="5"/>
                             </Style>
                         </Button.Resources>
-                    </Button>
+                    </Button>-->
 
                 </Grid>
             </StackPanel>

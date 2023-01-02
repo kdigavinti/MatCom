@@ -45,6 +45,7 @@ namespace MatCom.UI
         Pen _pen = new Pen(new SolidColorBrush(),1);
         List<Point> _zeroCrossingPoints = new List<Point>();
         bool _isTrigonometricFunction = false;
+        bool _isInfinityCurve = false;
 
         public Graph()
         {
@@ -124,7 +125,7 @@ namespace MatCom.UI
             _fitToScreen = true;
             _expressionValues = new List<ExpressionValues>();
             txtBlockErrorMessage.Text = "";
-            txtBlockErrorMessage.Visibility = Visibility.Collapsed;
+            txtBlockErrorMessage.Visibility = Visibility.Collapsed;           
         }      
         private void TxtF1_KeyDown(object sender, KeyEventArgs e)
         {
@@ -132,6 +133,7 @@ namespace MatCom.UI
             {
                 if (!string.IsNullOrEmpty(txtF1.Text.Trim()))
                 {
+                    _isInfinityCurve = false;
                     _expression = txtF1.Text.Trim();
                     _expressionWithoutSpaces = _expression.ToLower().Replace(" ", "");
                     //string exp = _expression.ToLower();
@@ -139,7 +141,7 @@ namespace MatCom.UI
                      || _expressionWithoutSpaces.Contains("sec") || _expressionWithoutSpaces.Contains("csc") || _expressionWithoutSpaces.Contains("cot"))
                         _isTrigonometricFunction = true;
                     else 
-                        _isTrigonometricFunction = false;
+                        _isTrigonometricFunction = false;                    
                     ResetValues();
                     _zeroCrossingPoints.Clear();
                     PlotGraph();
@@ -188,42 +190,85 @@ namespace MatCom.UI
 
         public async Task<List<double>> GetPointsForTrigonometricFunctions()
         {
+            bool infinityAtZero = false;
+            bool infinityAtNinty = false;
+            bool infinityAt180 = false;
+            bool isNan = false;
+            if (_isTrigonometricFunction)
+            {
+                Evaluator eval = new Evaluator();
+                double res = eval.ParseExpressionForSingleValue(_expression, 0);
+                if (double.IsNaN(res))
+                {
+                    isNan = true;
+                }
+                else if (res == double.PositiveInfinity || res == double.NegativeInfinity || res >= 999 || res <= -999)
+                {
+                    _isInfinityCurve = true;
+                    infinityAtZero = true;
+                }
+                res = eval.ParseExpressionForSingleValue(_expression,  Math.PI / 2);
+                if (double.IsNaN(res))
+                {
+                    isNan = true;
+                }
+                else if (double.IsNaN(res) || res == double.PositiveInfinity || res == double.NegativeInfinity || res >= 999 || res <= -999)
+                {
+                    _isInfinityCurve = true;
+                    infinityAtNinty = true;
+                }
+                
+            }
             List<double> xPoints = new List<double>();
-            //int initialValue = (_expression.Contains("tan") || _expression.Contains("sec")) ? 1 : 0;
-            int initialValue = 0;
-            for (int i= initialValue; ; i+= 1)
+            if (isNan) return xPoints;
+            if (infinityAtZero || infinityAtNinty || (!infinityAtZero && !infinityAtNinty))
+            //if (infinityAtZero || infinityAtNinty)
             {
-                if (i * Math.PI / 2 <= _xMax)
+                int initialValue = ((infinityAtZero) || (!infinityAtZero && !infinityAtNinty)) ? 0 : 1;
+                int increment = ((infinityAtZero && infinityAtNinty) || (!infinityAtZero && !infinityAtNinty)) ? 1 : 2;
+                //int initialValue = ((infinityAtZero)) ? 0 : 1;
+                //int increment = ((infinityAtZero && infinityAtNinty)) ? 1 : 2;
+
+                for (int i = initialValue; ; i += increment)
                 {
-                    xPoints.Add(i * Math.PI / 2 - 0.0000001);
-                    xPoints.Add(i * Math.PI / 2 + 0.0000001);
+                    if (i * Math.PI / 2 <= _xMax)
+                    {
+                        if (i != 0)
+                        {
+                            xPoints.Add(i * Math.PI / 2 - 0.0000001);
+                            xPoints.Add(i * Math.PI / 2 + 0.0000001);
+                        }
 
-                    xPoints.Add(i * Math.PI / 2 - 0.0001);
-                    xPoints.Add(i * Math.PI / 2 + 0.0001);
+                        xPoints.Add(i * Math.PI / 2 - 0.0001);
+                        xPoints.Add(i * Math.PI / 2 + 0.0001);
 
-                    xPoints.Add(i * Math.PI / 2 - 0.001);
-                    xPoints.Add(i * Math.PI / 2 + 0.001);
+                        xPoints.Add(i * Math.PI / 2 - 0.001);
+                        xPoints.Add(i * Math.PI / 2 + 0.001);
+
+                    }
+                    else
+                        break;
                 }
-                else
-                    break;
-            }
-            for (int i = -1* initialValue; ; i -= 1)
-            {
-                if (i * Math.PI / 2 >= _xMin)
+                initialValue = ((infinityAtNinty) || (!infinityAtZero && !infinityAtNinty)) ? -1 : -2;
+                //initialValue = ((infinityAtNinty)) ? -1 : -2;
+                for (int i = initialValue; ; i -= increment)
                 {
-                    
-                    xPoints.Add(i * Math.PI / 2 - 0.0000001);
-                    xPoints.Add(i * Math.PI / 2 + 0.0000001);
-                    
-                    xPoints.Add(i * Math.PI / 2 - 0.0001);
-                    xPoints.Add(i * Math.PI / 2 + 0.0001);
+                    if (i * Math.PI / 2 >= _xMin)
+                    {
+                        xPoints.Add(i * Math.PI / 2 - 0.0000001);
+                        xPoints.Add(i * Math.PI / 2 + 0.0000001);
 
-                    xPoints.Add(i * Math.PI / 2 - 0.001);
-                    xPoints.Add(i * Math.PI / 2 + 0.001);
+                        xPoints.Add(i * Math.PI / 2 - 0.0001);
+                        xPoints.Add(i * Math.PI / 2 + 0.0001);
+
+                        xPoints.Add(i * Math.PI / 2 - 0.001);
+                        xPoints.Add(i * Math.PI / 2 + 0.001);
+                    }
+                    else
+                        break;
                 }
-                else
-                    break;
             }
+            
             return xPoints;
         }
         public async Task<List<GraphPoint>> CalculatePoints(string function)
@@ -235,7 +280,7 @@ namespace MatCom.UI
                 decimal transformX = 0;
                 if (_isTrigonometricFunction && _steps<=50)
                 {
-                    _stepsToCalculatePoints = 0.1;
+                    _stepsToCalculatePoints = 0.05;
                 }
                 while (x <= (decimal)_xOriginalMax)
                 {
@@ -249,7 +294,7 @@ namespace MatCom.UI
                     }
                     x = x + (decimal)_stepsToCalculatePoints;
                 }
-                if (_isTrigonometricFunction && _expressionWithoutSpaces!="sin(x)" && _expression!="cos(x)")
+                if (_isInfinityCurve || _isTrigonometricFunction)
                 {
                     xPoints.AddRange(await GetPointsForTrigonometricFunctions());
                 }
@@ -542,6 +587,7 @@ namespace MatCom.UI
                     double previousPointX = 0.0, currentPointX = 0.0;
                     foreach (GraphPoint p in expvalues.GraphPoints)
                     {
+                        if (p.Y == double.NegativeInfinity || p.Y == double.PositiveInfinity) continue;
                         currentPointY = p.Y;
                         currentPointX = p.X;
                         currentPoint = (currentPointY >= 0) ? "P" : "N";
@@ -603,8 +649,8 @@ namespace MatCom.UI
             List<ZeroCrossingRange> lstZeroCrossingRanges = FindZeroCrossingPointsRange();            
             foreach (ZeroCrossingRange zeroCrossingRange in lstZeroCrossingRanges)
             {
-                string zeroCrossingPoint = Evaluator.RootPolynomial(zeroCrossingRange.X1, zeroCrossingRange.X2, txtF1.Text);
-                //string zeroCrossingPoint = ZeroCrossing.ZeroCrossing.bisection(zeroCrossingRange.X1, zeroCrossingRange.X2, txtF1.Text, 0);
+                //string zeroCrossingPoint = Evaluator.RootPolynomial(zeroCrossingRange.X1, zeroCrossingRange.X2, txtF1.Text);
+                string zeroCrossingPoint = ZeroCrossing.ZeroCrossing.bisection(zeroCrossingRange.X1, zeroCrossingRange.X2, txtF1.Text, 0);
                 if (!string.IsNullOrEmpty(zeroCrossingPoint))
                     _zeroCrossingPoints.Add(new Point(Convert.ToDouble(zeroCrossingPoint), 0));
             }
@@ -623,8 +669,10 @@ namespace MatCom.UI
             chartCanvas.Children.Clear();
             txtF1.Text = "";
             _expression = "";
+             _isInfinityCurve = false;
+            _isTrigonometricFunction = false;
             ResetValues();
-            DawGridLines();
+            DawGridLines();            
         }
 
         private void ChartCanvas_MouseMove(object sender, MouseEventArgs e)
@@ -654,7 +702,7 @@ namespace MatCom.UI
             }
             if (txtBlock != null)
                 chartCanvas.Children.Remove(txtBlock);
-   
+            //add all path geometries to the collection and then verify if the point exists on any of the collection objects
             if(_pathGeometry != null && _pathGeometry.StrokeContains(_pen, p))
             {
                 double xPoint = (p.X - _origin.X) * _steps / _xAxisLinesGap;
@@ -763,10 +811,13 @@ namespace MatCom.UI
                         List<GraphPoint> graphPoints =await CalculatePoints(_expression);
                         if (graphPoints != null)
                         {
-                            if(_isTrigonometricFunction && _expressionWithoutSpaces!= "sin(x)" && _expressionWithoutSpaces!="cos(x)")
-                                PlotTrigonometricCurve(graphPoints, Brushes.Blue);                            
-                            else
-                                PlotCurve(graphPoints, Brushes.Blue);
+                            PlotTrigonometricCurve(graphPoints, Brushes.Blue);
+                            //if (_isInfinityCurve)
+                            //{
+                            //    PlotTrigonometricCurve(graphPoints, Brushes.Blue);                                
+                            //}                                                           
+                            //else
+                            //    PlotCurve(graphPoints, Brushes.Blue);
                             ClearZeroCrossingPoints();
                             AddZeroCrossingPoints(_zeroCrossingPoints);
                         }                        
@@ -782,8 +833,8 @@ namespace MatCom.UI
         private void PlotTrigonometricCurve(List<GraphPoint> points, System.Windows.Media.SolidColorBrush color)
         {
             if (points == null || (points != null && points.Count == 0)) return;
-            double tolerance = 0.0000001;
-            int initialValue = (_expression.Contains("tan") || _expression.Contains("sec")) ? 1 : 0;
+            double tolerance = 0;
+            /*int initialValue = (_expression.Contains("tan") || _expression.Contains("sec")) ? 1 : 0;
             for (int idx = -1 * initialValue; ; idx += 2)
             {
                 if (idx * Math.PI / 2 <= _xMax)
@@ -805,7 +856,37 @@ namespace MatCom.UI
                 else
                     break;
 
-            }            
+            }*/
+
+            string previousPoint = "", currentPoint = "";
+            double previousPointY = 0.0, currentPointY = 0.0;
+            double previousPointX = 0.0, currentPointX = 0.0;
+            List<GraphPoint> curvePoints = new List<GraphPoint>();
+            foreach (GraphPoint p in points)
+            {
+                if(p.Y == double.NegativeInfinity || p.Y == double.PositiveInfinity)
+                    continue;
+                currentPointY = p.Y;
+                currentPointX = p.X;
+                currentPoint = (currentPointY >= tolerance) ? "P" : "N";                
+                if (_isTrigonometricFunction && (previousPoint == "N" && currentPoint == "P" && currentPointY >= 999) || (previousPoint == "P" && currentPoint == "N" && currentPointY <= -999))
+                {                    
+                    PlotCurve(curvePoints, color);
+                    curvePoints = new List<GraphPoint>();                    
+                }
+                if((double.IsNaN( currentPointY)))
+                {
+                    PlotCurve(curvePoints, color);
+                    curvePoints = new List<GraphPoint>();
+                }
+                if(!(double.IsNaN(currentPointY)))
+                curvePoints.Add(p);
+                previousPoint = currentPoint;
+                previousPointY = currentPointY;
+                previousPointX = currentPointX;
+            }
+            if(curvePoints.Count > 0)
+                PlotCurve(curvePoints, color);
         }
 
         private void PlotCurve(List<GraphPoint> values, System.Windows.Media.SolidColorBrush color)

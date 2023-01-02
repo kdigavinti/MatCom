@@ -32,7 +32,7 @@
                     <TextBlock TextWrapping="WrapWithOverflow" Name="txtBlockErrorMessage" VerticalAlignment="Center" FontSize="18" Margin="10,10,10,10" Width="230" Visibility="Collapsed" Foreground="#FFFA0505" FontWeight="Bold">
                         
                     </TextBlock>
-                    <StackPanel Orientation="Horizontal">
+                    <!--<StackPanel Orientation="Horizontal">
                         <TextBlock TextWrapping="WrapWithOverflow" Name="txtBlockFindDiffOver" VerticalAlignment="Center" FontSize="18" Margin="10,10,10,10" Width="110" >
                             Find Diff Over
                         </TextBlock>
@@ -51,7 +51,7 @@
                                 <Setter Property="CornerRadius" Value="5"/>
                             </Style>
                         </Button.Resources>
-                    </Button>
+                    </Button>-->
                     <StackPanel Orientation="Horizontal">
                         <Button FontSize="18" Content="Zero Crossing" Margin="10,10,10,10" Width="140" Click="BtnZeroCrossing_Click" Visibility="Visible" x:Name="btnZeroCrossing" HorizontalAlignment="Left">
                             <Button.Resources>

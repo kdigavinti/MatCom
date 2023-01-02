@@ -728,10 +728,10 @@ namespace MatCom.UI
             
         }
 
-        private void BtnDifferentiation_Click(object sender, RoutedEventArgs e)
-        {
+        //private void BtnDifferentiation_Click(object sender, RoutedEventArgs e)
+        //{
 
-        }
+        //}
 
         private string FormatLabel(double val)
         {

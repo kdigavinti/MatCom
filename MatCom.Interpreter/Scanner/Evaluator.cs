@@ -27,10 +27,17 @@ namespace MatCom.Interpreter.Scanner
         //added by Kiran
         public double ParseExpressionForSingleValue(string expression, double x)
         {
-            Parser parser = new Parser();
-            expression = expression.Replace("x", x.ToString());
-            double y = Convert.ToDouble(parser.Parse(expression));
-            return y;
+            try
+            {
+                Parser parser = new Parser();
+                expression = expression.Replace("x", x.ToString());
+                double y = Convert.ToDouble(parser.Parse(expression));
+                return y;
+            }
+            catch(DivideByZeroException ex)
+            {
+                return double.NaN;
+            }
         }
 
         public void Parsing(string expression, double x)
@@ -38,7 +45,7 @@ namespace MatCom.Interpreter.Scanner
             Parser parser = new Parser();
             expression = expression.Replace("x", x.ToString());   
             double y = Convert.ToDouble(parser.Parse(expression));
-            if(!Double.IsNaN(y))
+            //if(!Double.IsNaN(y))
                 Points.TryAdd(x, y);
         }
 
@@ -79,7 +86,14 @@ namespace MatCom.Interpreter.Scanner
             {
                 await Task.Run(() => Parallel.ForEach(inputPoints, p =>
                 {
-                    Parsing(expression, p);
+                    try
+                    {
+                        Parsing(expression, p);
+                    }
+                    catch(DivideByZeroException ex)
+                    {
+                        Points.TryAdd(p,double.NaN);
+                    }
                 }));
                 foreach (var item in Points.OrderBy(x => x.Key))
                 {

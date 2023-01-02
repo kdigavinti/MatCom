@@ -209,10 +209,19 @@ namespace MatCom.Interpreter.Scanner
                         {
                             string functionInput = string.Empty;
                             NextToken();//Skip left parantheses
-                            while (_currToken.value != ")")
+                            int leftParanthesesCount = 1;
+                            while (leftParanthesesCount != 0 && _currToken.value != "")
                             {
+                                if (_currToken.value == "(")
+                                    leftParanthesesCount++;
                                 functionInput += _currToken.value;
                                 NextToken();
+                                if (_currToken.value == ")")
+                                    leftParanthesesCount--;
+                            }
+                            if(leftParanthesesCount != 0)
+                            {
+                                throw new Exception($"Closing Parantheses not found at position {_currToken.position}");
                             }
                             factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), functionInput));
                         }

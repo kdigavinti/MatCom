@@ -67,6 +67,8 @@ namespace MatCom.Interpreter.Scanner
 
         public static double FunctionValue(string functionName, string value)
         {
+            if (String.Compare(value, "pi", StringComparison.OrdinalIgnoreCase) == 0)
+                value = Math.PI.ToString();
             Parser parser = new Parser();
             value = parser.Parse(value);
             double _value = 0;

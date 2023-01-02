@@ -11,7 +11,6 @@ namespace MatCom.Interpreter.Scanner
     public class Evaluator
     {
         Queue<Token> tokens = new Queue<Token>();
-        //public List<GraphPoint> points = new List<GraphPoint>();
         ConcurrentDictionary<double, double> Points = new ConcurrentDictionary<double, double>();
         public List<GraphPoint> GraphPoints = new List<GraphPoint>();
 
@@ -24,22 +23,29 @@ namespace MatCom.Interpreter.Scanner
         {
             this.tokens = tokens;
         }
+
         //added by Kiran
         public double ParseExpressionForSingleValue(string expression, double x)
         {
-            Parser parser = new Parser();
-            expression = expression.Replace("x", x.ToString());
-            double y = Convert.ToDouble(parser.Parse(expression));
-            return y;
+            try
+            {
+                Parser parser = new Parser();
+                expression = expression.Replace("x", x.ToString());
+                double y = Convert.ToDouble(parser.Parse(expression));
+                return y;
+            }
+            catch(DivideByZeroException ex)
+            {
+                return double.NaN;
+            }
         }
-        public void Parsing(string expression, double x/*, ConcurrentDictionary<double, double> points*/)
+
+        public void Parsing(string expression, double x)
         {
             Parser parser = new Parser();
-            //p.Parse("x = " + i.ToString());
-            expression = expression.Replace("x", x.ToString());
-            //double y = Math.Round(Convert.ToDouble(parser.Parse(expression)), 4);
+            expression = expression.Replace("x", x.ToString());   
             double y = Convert.ToDouble(parser.Parse(expression));
-            if(!Double.IsNaN(y))
+            //if(!Double.IsNaN(y))
                 Points.TryAdd(x, y);
         }
 
@@ -74,227 +80,184 @@ namespace MatCom.Interpreter.Scanner
             await Task.WhenAll(tasksList);
         }
 
-        public async Task RunTasks(List<double> points, string expression)
-        {
-            var tasksList = new List<Task>();
-            for (int i = 0;i<points.Count;i++)
-            {
-                string exp = expression;
-                var runTask = Task.Run(() => Parsing(exp, points[i]));
-                tasksList.Add(runTask);
-            }
-            await Task.WhenAll(tasksList);
-        }
-
-        public async void EvaluateParallel(decimal xmin, decimal xmax, decimal steps, string expression)
-        {
-            await RunTasks(xmin, xmax, steps, expression);
-            
-           
-            foreach (var item in Points.OrderBy(x => x.Key))
-            {
-                GraphPoints.Add(new GraphPoint(item.Key, item.Value));
-            }
-         //   return graphPoints;
-        }
-
         public async Task<List<GraphPoint>> Evaluate(List<double> inputPoints, string expression)
         {
             if (Validate(expression))
             {
                 await Task.Run(() => Parallel.ForEach(inputPoints, p =>
                 {
-                    Parsing(expression, p);
+                    try
+                    {
+                        Parsing(expression, p);
+                    }
+                    catch(DivideByZeroException ex)
+                    {
+                        Points.TryAdd(p,double.NaN);
+                    }
                 }));
                 foreach (var item in Points.OrderBy(x => x.Key))
                 {
                     GraphPoints.Add(new GraphPoint(item.Key, item.Value));
-                }                
+                }
             }
             return GraphPoints;
-            //await RunTasks(points, expression);
         }
 
-        public static string RootPolynomial(double left, double right, string expression)
+        public void Differentiate(string expression, string value)
         {
-           /* double tolerance = 0.00001;
-            double xLeft = start;
-            double xRight = end;
-            double xMiddle = (start + end) / 2;
-            double yLeft = ParseFunction(expression, xLeft);
-            double yRight = ParseFunction(expression, xRight);
-            double yMiddle = tolerance + 1.0;
-
-
-            while(Math.Abs(xRight - xLeft) > tolerance)
+            if(Validate(expression))
             {
-                xMiddle = (xLeft + xRight)/2;
-                yMiddle = ParseFunction(expression, xMiddle);
-                if(yMiddle * yLeft < 0)
+                string[] keys = new string[] { "tan", "cos", "sin" };
+
+                string sKeyResult = keys.FirstOrDefault<string>(s => expression.Contains(s));
+                if (sKeyResult != null && sKeyResult.Length > 0)
                 {
-                    xRight = xMiddle;
-                    yRight = yMiddle;
+
+                    string trigValue = expression.Substring(expression.IndexOf("("), expression.IndexOf(")") - expression.IndexOf("("));
+                    switch (sKeyResult)
+                    {
+                        case "tan":
+                            expression = "sec(" + trigValue + ")*sec(" + trigValue + ")";
+                            break;
+                        case "sin":
+                            expression = "cos(" + trigValue + ")";
+                            break;
+                        case "cos":
+                            expression = "sin(-" + trigValue + ")";
+                            break;
+                        default: break;
+                    }
                 }
                 else
                 {
-                    xLeft = xMiddle;
-                    yLeft = yMiddle;
-                }
-            }
-            return xMiddle.ToString();*/
-            List<GraphPoint> graphPoints = new List<GraphPoint>();
-            //double tolerance = 0.00001;
-            double tolerance = 0.01;
-            double mid = (left + right)/2;
-            double yMid = ParseFunction(expression, mid);
-            int iterations = 0;
-
-            if (ParseFunction(expression, left) * ParseFunction(expression, right) > 0)
-            {
-                return "";
-            }
-
-            if (yMid != 0)
-            {
-                while (Math.Abs(yMid) >= tolerance && iterations < 500)
-                {
-                    if (ParseFunction(expression, mid) == 0.0)
+                    Lexer lexer = new Lexer(expression);
+                    List<Token> TokenList = lexer.Tokenize();
+                    if (TokenList != null)
                     {
-                        break;
-                    }
-                    else if ((ParseFunction(expression, mid) * ParseFunction(expression, left)) > 0)
-                    {
-                        left = mid;
-                    }
-                    else
-                    {
-                        right = mid;
-                    }
-                    mid = Math.Round((left + right) / 2, 4);
-                    iterations++;
-                }
-            }
-            return mid.ToString();
-        }
-
-        public static List<GraphPoint> Evaluate(decimal xmin, decimal xmax, decimal steps, string expression)
-        {            
-            List<GraphPoint> graphPoints = new List<GraphPoint>();
-            ConcurrentDictionary<double, double> points = new ConcurrentDictionary<double, double>();
-            double y;
-            Parser p = new Parser();
-            List<Task> list = new List<Task>();
-            for (decimal i=xmin; i<=xmax; i = i + steps)
-            {
-                string exp = expression;
-                double x = Math.Round( (double)i, 2);
-                //ParameterizedThreadStart pts = new ParameterizedThreadStart(Parsing);
-
-//                Thread th = new Thread(pts => Parsing(exp, x));
-  //              th.Start();
-    //            th.Join();
-                //th.Start(exp, x, points);
-
-
-                //Task<double> task = Task<double>.Factory.StartNew(() =>
-                //{
-                //    double result = Parsing(expression.Replace("x", tmp.ToString()));
-                //    return result;
-                //});
-                //points.Add(new GraphPoint((double)i, task.Result));
-
-                /*  y = Convert.ToDouble(p.Parse(expression.Replace("x", i.ToString())));
-                  points.Add(new GraphPoint((double)i, y));*/
-            }
-            foreach(var item in points.OrderBy(x=>x.Key))
-            {
-                graphPoints.Add(new GraphPoint(item.Key, item.Value));
-            }
-            return graphPoints;
-       /*     if(this.tokens != null && this.tokens.Count > 0)
-            {
-                Stack<double> stack = new Stack<double>();
-                double leftOperand, rightOperand, result;
-                foreach (var token in this.tokens)
-                {
-                    leftOperand = 0;
-                    rightOperand = 0;
-                    result = 0;
-                    if(token.Type == TokenType.Number|| token.Type == TokenType.Unary || token.Type == TokenType.Constants)
-                    {
-                        if(token.Value != null && double.TryParse(token.Value, out _)) 
-                            stack.Push(double.Parse(token.Value));
-                        Print(token.Value);
-                    }
-                    //else if(token.Type == TokenType.Identifier)
-                    //{
-                    //    stack.Push(token.Value);
-                    //}
-                    else if(token.Type == TokenType.Operator)
-                    {
-                        if(stack.Count > 1)
+                        for (int i = 0; i < TokenList.Count; i++)
                         {
-                            rightOperand = stack.Pop();
-                            leftOperand = stack.Pop();
-                        }
-                        else
-                        {
-                            throw new Exception("Invalid Expression");
-                        }
-                        switch (token.Value)
-                        {
-                            case "+": result = leftOperand + rightOperand;break;
-                            case "-": result = leftOperand - rightOperand;break;
-                            case "*": result = leftOperand * rightOperand; break;
-                            case "/": 
-                                if(rightOperand == 0)
+                            if (TokenList[i].type == TokenType.Identifier)
+                            {
+                                if (TokenList[i + 1].value != "^")
                                 {
-                                    throw new DivideByZeroException("Divisor cannot be zero");
+                                    TokenList[i].value = "1";
                                 }
-                                result = leftOperand / rightOperand; break;
-                            case "^": result = Math.Pow(leftOperand, rightOperand);break;
-                            case "%": result = leftOperand % rightOperand;break;
-                            
-                            default: throw new ArgumentException("Unknown Operator");
+                            }
+
+                            if (TokenList[i].type == TokenType.Number)
+                            {
+                                if (i != TokenList.Count && TokenList[i + 1].value is "+" or "-" or " " or "" && ((i != 0 && TokenList[i - 1].value is "+" or "-") || i == 0))
+                                {
+                                    TokenList[i].value = "0";
+                                }
+                            }
+
+                            if (TokenList[i].value == "^")
+                            {
+                                if (i + 1 <= TokenList.Count)
+                                {
+                                    double powerValue = Convert.ToDouble(TokenList[i + 1].value);
+                                    if (!Double.IsNaN(powerValue))
+                                    {
+                                        TokenList[i + 1].value = (Convert.ToDouble(TokenList[i + 1].value) - 1).ToString();
+                                        TokenList.Insert(i - 1, new Token(TokenType.Number, powerValue.ToString(), i - 1));
+                                        TokenList.Insert(i, new Token(TokenType.Number, "*", i));
+                                        i = i + 2;
+                                    }
+                                }
+                            }
                         }
-                        stack.Push(result);
-                        Print(token.Value);                       
-                    }
-                    else if(token.Type == TokenType.Functions)
-                    {
-                        if (stack.Count >= 1)
+                        expression = "";
+                        for (int i = 0; i < TokenList.Count; i++)
                         {
-                            rightOperand = stack.Pop();
+                            expression += TokenList[i].value;
                         }
-                        switch (token.Value.ToLower())
-                        {
-                            case "abs": result = Math.Abs(rightOperand);break;
-                            case "log": result = Math.Log(rightOperand);break;
-                            case "exp": result = Math.Exp(rightOperand);break;
-                            case "sqrt": result = Math.Sqrt(rightOperand);break;
-                            case "sin": result = Math.Sin(rightOperand); break;
-                            case "cos": result = Math.Cos(rightOperand);break;
-                            case "tan": result = Math.Tan(rightOperand);break;
-                            case "csc": result = 1/ Math.Sin(rightOperand); break;
-                            case "sec": result = 1/ Math.Cos(rightOperand); break;
-                            case "cot": result = 1 / Math.Tan(rightOperand);break;                                
-                            default: break;
-                        }
-                        stack.Push(result);
-                        Print(token.Value);
+                        Parser parser = new Parser();
+                        parser.Parse("x=" + value);
+                        string output = parser.Parse(expression);
                     }
-                  
                 }
-                void Print(string action) => System.Diagnostics.Debug.WriteLine("{0,-4} {1,-18}", action + ":", $"stack[ {string.Join(" ", stack.Reverse())} ]");
-                if (stack.Count != 1)
-                    throw new Exception("Invalid Expression");
-
-                //System.Diagnostics.Debug.WriteLine(stack.Pop());
-                return stack.Pop().ToString();
             }
-
-            return "";*/
         }
+        //public async Task RunTasks(List<double> points, string expression)
+        //{
+        //    var tasksList = new List<Task>();
+        //    for (int i = 0;i<points.Count;i++)
+        //    {
+        //        string exp = expression;
+        //        var runTask = Task.Run(() => Parsing(exp, points[i]));
+        //        tasksList.Add(runTask);
+        //    }
+        //    await Task.WhenAll(tasksList);
+        //}
+
+        //public async void EvaluateParallel(decimal xmin, decimal xmax, decimal steps, string expression)
+        //{
+        //    await RunTasks(xmin, xmax, steps, expression);
+
+
+        //    foreach (var item in Points.OrderBy(x => x.Key))
+        //    {
+        //        GraphPoints.Add(new GraphPoint(item.Key, item.Value));
+        //    }
+        //}
+
+
+
+        //public static string RootPolynomial(double left, double right, string expression)
+        //{
+        //    List<GraphPoint> graphPoints = new List<GraphPoint>();
+        //    double tolerance = 0.01;
+        //    double mid = (left + right)/2;
+        //    double yMid = ParseFunction(expression, mid);
+        //    int iterations = 0;
+
+        //    if (ParseFunction(expression, left) * ParseFunction(expression, right) > 0)
+        //    {
+        //        return "";
+        //    }
+
+        //    if (yMid != 0)
+        //    {
+        //        while (Math.Abs(yMid) >= tolerance && iterations < 500)
+        //        {
+        //            if (ParseFunction(expression, mid) == 0.0)
+        //            {
+        //                break;
+        //            }
+        //            else if ((ParseFunction(expression, mid) * ParseFunction(expression, left)) > 0)
+        //            {
+        //                left = mid;
+        //            }
+        //            else
+        //            {
+        //                right = mid;
+        //            }
+        //            mid = Math.Round((left + right) / 2, 4);
+        //            iterations++;
+        //        }
+        //    }
+        //    return mid.ToString();
+        //}
+
+        //public static List<GraphPoint> Evaluate(decimal xmin, decimal xmax, decimal steps, string expression)
+        //{            
+        //    List<GraphPoint> graphPoints = new List<GraphPoint>();
+        //    ConcurrentDictionary<double, double> points = new ConcurrentDictionary<double, double>();
+        //    double y;
+        //    Parser p = new Parser();
+        //    List<Task> list = new List<Task>();
+        //    for (decimal i=xmin; i<=xmax; i = i + steps)
+        //    {
+        //        string exp = expression;
+        //        double x = Math.Round( (double)i, 2);
+        //    }
+        //    foreach(var item in points.OrderBy(x=>x.Key))
+        //    {
+        //        graphPoints.Add(new GraphPoint(item.Key, item.Value));
+        //    }
+        //    return graphPoints;
+        //}
 
     }
 }

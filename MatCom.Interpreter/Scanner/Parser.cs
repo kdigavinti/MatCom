@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 namespace MatCom.Interpreter.Scanner
 {
     /*
-     * statement = identifier ":=" expression;
-     * booleanexpression = expression {("=="|"!=") expression};
-     * expression = ["+"|"-"] term {("+"|"-") term};
-     * term = factor {("*"|"/") factor};
+     * statement = identifier ":=" boolExpression;
+     * boolExpression = expression [('==' | '!=' | '<' | '<=' | '>' | '>=') expression];
+     * expression = ["+"|"-"] term {("+"|"-"|'||') term};
+     * term = factor {("*"|"/"|"%"|'&&') factor};
      *  factor = identifier | number | "(" expression ")" | - (Exp);
      */
     public class Parser
@@ -43,7 +43,7 @@ namespace MatCom.Interpreter.Scanner
             //}
             NextToken();
             AST? statement = Statement();
-            ExpectToken(TokenType.EOF);
+           // ExpectToken(TokenType.EOF);
             return statement.Eval().ToString();
         }
 
@@ -90,7 +90,7 @@ namespace MatCom.Interpreter.Scanner
             }
             else 
             { 
-                expression = Expression();
+                expression = BooleanExpression();
                 return expression;
             }
             return null;
@@ -103,7 +103,7 @@ namespace MatCom.Interpreter.Scanner
             while(_currToken.type != TokenType.EOF && _currToken.value == "=")
             {                
                 NextToken();
-                AST? rightNode = Expression();
+                AST? rightNode = BooleanExpression();
                 _environment.assign(variable.ToString(), rightNode.Eval());
                 variable = new ASTStringLeaf(variable.ToString() + "=" + rightNode.Eval().ToString());
               //  NextToken();
@@ -111,11 +111,35 @@ namespace MatCom.Interpreter.Scanner
             return variable;
         }
 
+        /*
+     * statement = identifier ":=" boolExpression;
+     * boolExpression = expression [('==' | '!=' | '<' | '<=' | '>' | '>=') expression];
+     * expression = ["+"|"-"] term {("+"|"-"|'||') term};
+     * term = factor {("*"|"/"|"%"|'&&') factor};
+     *  factor = identifier | number | "(" expression ")" | - (Exp);
+     */
+
+        AST? BooleanExpression()
+        {
+            AST? boolExpression = Expression();
+            string _operator = string.Empty;
+            while(_currToken.type != TokenType.EOF && boolExpression != null && _currToken.value is "==" or "!=" or "<" or "<=" or ">" or ">=")
+            {
+                _operator = _currToken.value.ToString();
+                NextToken();
+                AST? rightNode = Expression();
+                boolExpression = new ASTBinaryOp(boolExpression, rightNode, _operator);
+            }
+            return boolExpression;
+        }
+
+
+
         AST? Expression()
         {
             AST? expression = Term();
             string _operator = string.Empty;
-            while(_currToken.type != TokenType.EOF && expression != null && _currToken.value is "+" or "-")
+            while(_currToken.type != TokenType.EOF && expression != null && _currToken.value is "+" or "-" or "||")
             {
                 _operator = _currToken.value;
                 NextToken();
@@ -140,7 +164,7 @@ namespace MatCom.Interpreter.Scanner
              return term;*/
             AST? term = Power();
             string _operator = string.Empty;
-            while (_currToken.type != TokenType.EOF && term != null && _currToken.value is "*" or "/" or "|" or "&" or "<" or ">" or "<=" or ">=" or "==" or "!=" or "&&" or "||")
+            while (_currToken.type != TokenType.EOF && term != null && _currToken.value is "*" or "/" or "%" or "&&")
             {
                 _operator = _currToken.value;
                 NextToken();
@@ -171,7 +195,7 @@ namespace MatCom.Interpreter.Scanner
             {
                 case TokenType.LeftParantheses:
                     NextToken();
-                    factor = Expression();
+                    factor = BooleanExpression();
                     Match(")");
                     break;
                 case TokenType.Unary:
@@ -180,7 +204,7 @@ namespace MatCom.Interpreter.Scanner
                     break;
                 case TokenType.Operator:
                     NextToken();
-                    factor = Expression();
+                    factor = BooleanExpression();
                     break;
                 case TokenType.Identifier:
                     object identifierValue = _environment.getValue(_currToken.value);

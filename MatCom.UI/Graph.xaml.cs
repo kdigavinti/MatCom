@@ -50,8 +50,6 @@ namespace MatCom.UI
         public Graph()
         {
             InitializeComponent();
-            //chartCanvas.Children.Clear();
-            //DawGridLines();
 
             //this.StateChanged += (sender, e) => PlotGraph();            
             this.SizeChanged += (sender, e) => PlotGraph();

@@ -19,6 +19,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using MatCom.ZeroCrossing;
+using Microsoft.FSharp.Collections;
+
 namespace MatCom.UI
 {
     /// <summary>
@@ -675,7 +677,16 @@ namespace MatCom.UI
                 ClearZeroCrossingPoints();
                 _zeroCrossingPoints.Clear();
                 List<ZeroCrossingRange> lstZeroCrossingRanges = FindZeroCrossingPointsRange();
-                foreach (ZeroCrossingRange zeroCrossingRange in lstZeroCrossingRanges)
+                //Stopwatch stopwatch = new Stopwatch();
+                //stopwatch.Start();
+                string[] zeroCrossingPoints = ZeroCrossing.ZeroCrossing.getZeroCrossingPoints(ListModule.OfSeq(lstZeroCrossingRanges), _expression);
+                foreach(string zeroCrossingPoint in zeroCrossingPoints)
+                {
+                    if (!string.IsNullOrEmpty(zeroCrossingPoint))
+                        _zeroCrossingPoints.Add(new Point(Convert.ToDouble(zeroCrossingPoint), 0));
+                }
+                
+                /*foreach (ZeroCrossingRange zeroCrossingRange in lstZeroCrossingRanges)
                 {
                     try
                     {
@@ -689,8 +700,10 @@ namespace MatCom.UI
                         _zeroCrossingPoints.Add(new Point(Math.Round((zeroCrossingRange.X1+ zeroCrossingRange.X2)/2,4), 0));
                     }
                     
-                }
-                if(_zeroCrossingPoints.Count>0)
+                }*/
+                //stopwatch.Stop();
+                //MessageBox.Show(stopwatch.ElapsedMilliseconds.ToString());
+                if (_zeroCrossingPoints.Count>0)
                     AddZeroCrossingPoints(_zeroCrossingPoints);
                 else
                 {                   
@@ -1022,9 +1035,4 @@ public class ExpressionValues
 {
     public string Expression { get; set; }
     public List<GraphPoint> GraphPoints { get; set; }
-}
-public class ZeroCrossingRange
-{
-    public double X1 { get; set; }
-    public double X2 { get; set; }
 }

@@ -17,4 +17,19 @@ namespace MatCom.Interpreter.Scanner
             Y = y;
         }
     }
+
+    public class ZeroCrossingRange
+    {
+        public double X1 { get; set; }
+        public double X2 { get; set; }
+        public ZeroCrossingRange()
+        {
+
+        }
+        public ZeroCrossingRange(double x1, double x2)
+        {
+            X1 = x1;
+            X2 = x2;
+        }
+    }
 }

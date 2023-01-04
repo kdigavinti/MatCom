@@ -58,9 +58,17 @@ namespace MatCom.Interpreter.Scanner
                         _refValue = _refValue.Replace(item.Key, item.Value.ToString());
                     }
                 }
+                //return _refValue;
+                if(decimal.TryParse(_refValue, out decimal result))
+                {
+                    return result;
+                }
+                else
+                {
+                    Parser parser = new Parser();
+                    return (object)parser.Parse(_refValue);
+                }
 
-                Parser parser = new Parser();
-                return (object)parser.Parse(_refValue);
             }
             return null;
         }

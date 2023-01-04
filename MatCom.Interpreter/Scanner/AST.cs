@@ -83,13 +83,15 @@ namespace MatCom.Interpreter.Scanner
                         return (double)this._leftNode.Eval() / (double)this._rightNode.Eval();
                     else
                         throw new DivideByZeroException("Divide by Zero error!!!");
+                case "%": return (double)this._leftNode.Eval() % (double)this._rightNode.Eval();
                 case "^": return Math.Pow((double)this._leftNode.Eval(), (double)this._rightNode.Eval());
                 case "==": return (double)this._leftNode.Eval() == (double)this._rightNode.Eval();
                 case ">=": return (double)this._leftNode.Eval() >= (double)this._rightNode.Eval();
                 case "<=": return (double)this._leftNode.Eval() <= (double)this._rightNode.Eval();
+                case "!=": return (double)this._leftNode.Eval() != (double)this._rightNode.Eval();
                 case "<":
                     return (bool)((double)this._leftNode.Eval() < (double)this._rightNode.Eval());
-                case ">": return (bool)((double)this._leftNode.Eval() < (double)this._rightNode.Eval());
+                case ">": return (bool)((double)this._leftNode.Eval() > (double)this._rightNode.Eval());
                 case "|":
                     bool _nodeValue = false;
                     if(!Boolean.TryParse(this._leftNode.Eval().ToString(), out _nodeValue))

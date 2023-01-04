@@ -41,13 +41,13 @@ namespace MatCom.Interpreter.Scanner
             //{
             //    System.Diagnostics.Debug.WriteLine("{0, -25} {1, -18}", token.type, token.value);
             //}
-            NextToken();
+            GetToken();
             AST? statement = Statement();
            // ExpectToken(TokenType.EOF);
             return statement.Eval().ToString();
         }
 
-        void NextToken()
+        void GetToken()
         {
             if(this._currentPosition < this.Tokens.Count)
             {
@@ -56,11 +56,21 @@ namespace MatCom.Interpreter.Scanner
             }
         }
 
+        Token NextToken()
+        {
+            if(this._currentPosition + 1 < this.Tokens.Count)
+            {
+                Token token = this.Tokens[_currentPosition+1];
+                return token;
+            }
+            return null;
+        }
+
         bool AcceptToken(TokenType type)
         {
             if(_currToken.type == type)
             {
-                NextToken();
+                GetToken();
                 return true;
             }
             return false;
@@ -99,10 +109,10 @@ namespace MatCom.Interpreter.Scanner
         AST? Assignment()
         {
             AST? variable = new ASTStringLeaf(_currToken.value);
-            NextToken();
+            GetToken();
             while(_currToken.type != TokenType.EOF && _currToken.value == "=")
             {                
-                NextToken();
+                GetToken();
                 AST? rightNode = BooleanExpression();
                 _environment.assign(variable.ToString(), rightNode.Eval());
                 variable = new ASTStringLeaf(variable.ToString() + "=" + rightNode.Eval().ToString());
@@ -126,7 +136,7 @@ namespace MatCom.Interpreter.Scanner
             while(_currToken.type != TokenType.EOF && boolExpression != null && _currToken.value is "==" or "!=" or "<" or "<=" or ">" or ">=")
             {
                 _operator = _currToken.value.ToString();
-                NextToken();
+                GetToken();
                 AST? rightNode = Expression();
                 boolExpression = new ASTBinaryOp(boolExpression, rightNode, _operator);
             }
@@ -142,7 +152,7 @@ namespace MatCom.Interpreter.Scanner
             while(_currToken.type != TokenType.EOF && expression != null && _currToken.value is "+" or "-" or "||")
             {
                 _operator = _currToken.value;
-                NextToken();
+                GetToken();
                 AST? rightNode = Term();
                 expression = new ASTBinaryOp(expression, rightNode, _operator);
             }
@@ -167,7 +177,7 @@ namespace MatCom.Interpreter.Scanner
             while (_currToken.type != TokenType.EOF && term != null && _currToken.value is "*" or "/" or "%" or "&&")
             {
                 _operator = _currToken.value;
-                NextToken();
+                GetToken();
                 AST? rightNode = Power();
                 term = new ASTBinaryOp(term, rightNode, _operator);
             }
@@ -181,7 +191,7 @@ namespace MatCom.Interpreter.Scanner
             while(_currToken.type != TokenType.EOF && power != null && _currToken.value == "^")
             {
                 _operator = _currToken.value;
-                NextToken();
+                GetToken();
                 AST? rightNode = Factor();
                 power = new ASTBinaryOp(power, rightNode, _operator);
             }
@@ -194,16 +204,16 @@ namespace MatCom.Interpreter.Scanner
             switch (_currToken.type)
             {
                 case TokenType.LeftParantheses:
-                    NextToken();
+                    GetToken();
                     factor = BooleanExpression();
                     Match(")");
                     break;
                 case TokenType.Unary:
                     factor = new ASTNumericLeaf(Convert.ToDouble(_currToken.value));
-                    NextToken();
+                    GetToken();
                     break;
                 case TokenType.Operator:
-                    NextToken();
+                    GetToken();
                     factor = BooleanExpression();
                     break;
                 case TokenType.Identifier:
@@ -211,49 +221,65 @@ namespace MatCom.Interpreter.Scanner
                     if (identifierValue != null)
                     {
                         factor = new ASTNumericLeaf(Convert.ToDouble(identifierValue.ToString()));
-                        NextToken();
+                        GetToken();
                     }
                     else
                         throw new Exception($"unknown variable {_currToken.value} ");
                     break;
                 case TokenType.Constants:
                     factor = new ASTNumericLeaf(Convert.ToDouble(_currToken.value));
-                    NextToken();
+                    GetToken();
                     break;
                 case TokenType.Number:
                     factor = new ASTNumericLeaf(Convert.ToDouble(_currToken.value));
-                    NextToken();
+                    GetToken();
                     break;
                 case TokenType.Functions:
                     string functionName = _currToken.value;
-                    NextToken();
+                    GetToken();
                     if (_currToken.value == "(")
                     {
-                        if(_expression.Contains(")"))
+                        GetToken();
+                        if ((_currToken.type != TokenType.Number && _currToken.type != TokenType.Identifier) || (NextToken != null && NextToken().value != ")"))
                         {
-                            string functionInput = string.Empty;
-                            NextToken();//Skip left parantheses
-                            int leftParanthesesCount = 1;
-                            while (leftParanthesesCount != 0 && _currToken.value != "")
-                            {
-                                if (_currToken.value == "(")
-                                    leftParanthesesCount++;
-                                functionInput += _currToken.value;
-                                NextToken();
-                                if (_currToken.value == ")")
-                                    leftParanthesesCount--;
-                            }
-                            if(leftParanthesesCount != 0)
-                            {
-                                throw new Exception($"Closing Parantheses not found at position {_currToken.position}");
-                            }
-                            factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), functionInput));
+                            factor = BooleanExpression();
+                            factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), factor.Eval().ToString()));
                         }
                         else
                         {
-                            throw new Exception($"Closing Parantheses not found at position {_currToken.position}");
-                        }
-                        NextToken(); //eat Token )
+                            if(_currToken.type == TokenType.Identifier)
+                                factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), _environment.getValue(_currToken.value).ToString()));
+                            else
+                                factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), _currToken.value));
+                            GetToken();
+                        }                        
+                        Match(")");//Eat )
+                        //NextToken();
+                        /* if(_expression.Contains(")"))
+                         {
+                             string functionInput = string.Empty;
+                             NextToken();//Skip left parantheses
+                             int leftParanthesesCount = 1;
+                             while (leftParanthesesCount != 0 && _currToken.value != "")
+                             {
+                                 if (_currToken.value == "(")
+                                     leftParanthesesCount++;
+                                 functionInput += _currToken.value;
+                                 NextToken();
+                                 if (_currToken.value == ")")
+                                     leftParanthesesCount--;
+                             }
+                             if(leftParanthesesCount != 0)
+                             {
+                                 throw new Exception($"Closing Parantheses not found at position {_currToken.position}");
+                             }
+                             factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), functionInput));
+                         }
+                         else
+                         {
+                             throw new Exception($"Closing Parantheses not found at position {_currToken.position}");
+                         }
+                         NextToken(); //eat Token )*/
                     }
                     else
                         throw new Exception($"Invalid Function {_currToken.value} at position {_currToken.position}");
@@ -267,7 +293,7 @@ namespace MatCom.Interpreter.Scanner
         {
             if (_currentPosition > 1 && Tokens[_currentPosition-1].value == expected)
             {
-                NextToken();
+                GetToken();
             }
             else
             {

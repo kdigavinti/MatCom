@@ -69,8 +69,8 @@ namespace MatCom.Interpreter.Scanner
         {
             if (String.Compare(value, "pi", StringComparison.OrdinalIgnoreCase) == 0)
                 value = Math.PI.ToString();
-            Parser parser = new Parser();
-            value = parser.Parse(value);
+            //Parser parser = new Parser();
+            //value = parser.Parse(value);
             double _value = 0;
             double result = 0;
             if (double.TryParse(value, out _value))

@@ -24,6 +24,18 @@ namespace MatCom.Interpreter.Scanner
             this.tokens = tokens;
         }
 
+        public Dictionary<string, Object> SymbolTableValues()
+        {
+            Environment env = new Environment();
+            return env.values;
+        }
+
+        public Dictionary<string, string> SymbolTableValueByRefs()
+        {
+            Environment env = new Environment();
+            return env.valueByRef;
+        }
+
         //added by Kiran
         public double ParseExpressionForSingleValue(string expression, double x)
         {

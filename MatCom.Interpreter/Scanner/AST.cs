@@ -88,6 +88,7 @@ namespace MatCom.Interpreter.Scanner
                 case "==": return (double)this._leftNode.Eval() == (double)this._rightNode.Eval();
                 case ">=": return (double)this._leftNode.Eval() >= (double)this._rightNode.Eval();
                 case "<=": return (double)this._leftNode.Eval() <= (double)this._rightNode.Eval();
+                case "!=": return (double)this._leftNode.Eval() != (double)this._rightNode.Eval();
                 case "<":
                     return (bool)((double)this._leftNode.Eval() < (double)this._rightNode.Eval());
                 case ">": return (bool)((double)this._leftNode.Eval() > (double)this._rightNode.Eval());

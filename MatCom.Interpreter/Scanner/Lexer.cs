@@ -47,7 +47,7 @@ namespace MatCom.Interpreter.Scanner
                     {
                         TokenList.Add(new Token(TokenType.Number, match, _currentPosition));
                     }
-                    else if((match = CheckToken(@"^(&&|==|\|\|)|<=|>=|!=")).Length > 0)
+                    else if((match = CheckToken(@"^(&&|==|\|\||<=|>=|!=)")).Length > 0)
                     {
                         TokenList.Add(new Token(TokenType.Operator, match, _currentPosition));
                     }

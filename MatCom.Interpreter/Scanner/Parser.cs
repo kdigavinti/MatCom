@@ -43,7 +43,7 @@ namespace MatCom.Interpreter.Scanner
             //}
             GetToken();
             AST? statement = Statement();
-           // ExpectToken(TokenType.EOF);
+            ExpectToken(TokenType.EOF);
             return statement.Eval().ToString();
         }
 
@@ -153,6 +153,8 @@ namespace MatCom.Interpreter.Scanner
             {
                 _operator = _currToken.value;
                 GetToken();
+                if (_currToken.type == TokenType.Operator)
+                    throw new Exception($"Invalid Operator {_currToken.value} at position {_currToken.position}");
                 AST? rightNode = Term();
                 expression = new ASTBinaryOp(expression, rightNode, _operator);
             }

@@ -41,7 +41,7 @@ namespace MatCom.UI
         bool _isDragged = false, _fitToScreen = true;
         string _expression, _expressionWithoutSpaces;
         List<ExpressionValues> _expressionValues;
-        PathGeometry _pathGeometry;
+        List<PathGeometry> _lstPathGeometry;
         Pen _pen = new Pen(new SolidColorBrush(),1);
         List<Point> _zeroCrossingPoints = new List<Point>();
         bool _isTrigonometricFunction = false;
@@ -54,6 +54,7 @@ namespace MatCom.UI
             //this.StateChanged += (sender, e) => PlotGraph();            
             this.SizeChanged += (sender, e) => PlotGraph();
             _expressionValues = new List<ExpressionValues>();
+            _lstPathGeometry = new List<PathGeometry>();
         }
        
         private void BtnZoomIn_Click(object sender, RoutedEventArgs e)
@@ -68,6 +69,7 @@ namespace MatCom.UI
 
         private void OnZoomInClick()
         {
+            //steps are 1, 0.5, 0.2, 0.1,...
             double newStep = ((_steps * 5).ToString().Contains("5")) ? _steps * 0.4 : _steps * 0.5;
             if (newStep >= 0.001)
             {
@@ -81,6 +83,7 @@ namespace MatCom.UI
 
         private void OnZoomOutClick()
         {
+            //steps are 1, 2, 5, 10, 20, 50, 100,...
             double newStep = ((_steps * 5).ToString().Contains("2")) ? _steps * 2.5 : _steps * 2;
             if (newStep <= 10000)
             {
@@ -123,7 +126,8 @@ namespace MatCom.UI
             _fitToScreen = true;
             _expressionValues = new List<ExpressionValues>();
             txtBlockErrorMessage.Text = "";
-            txtBlockErrorMessage.Visibility = Visibility.Collapsed;           
+            txtBlockErrorMessage.Visibility = Visibility.Collapsed;
+            _lstPathGeometry = new List<PathGeometry>();
         }      
         private void TxtF1_KeyDown(object sender, KeyEventArgs e)
         {
@@ -134,7 +138,7 @@ namespace MatCom.UI
                     _isInfinityCurve = false;
                     _expression = txtF1.Text.Trim();
                     _expressionWithoutSpaces = _expression.ToLower().Replace(" ", "");
-                    //string exp = _expression.ToLower();
+                    //handle trigonometric functions differently as they tend to infinity
                     if (_expressionWithoutSpaces.Contains("sin") || _expressionWithoutSpaces.Contains("cos") || _expressionWithoutSpaces.Contains("tan")
                      || _expressionWithoutSpaces.Contains("sec") || _expressionWithoutSpaces.Contains("csc") || _expressionWithoutSpaces.Contains("cot"))
                         _isTrigonometricFunction = true;
@@ -162,7 +166,7 @@ namespace MatCom.UI
             ReleaseMouseCapture();
             _isDragged = false;
         }
-
+        //for pan
         protected override void OnMouseMove(MouseEventArgs e)
         {
             if (_isDragged == false)
@@ -186,101 +190,91 @@ namespace MatCom.UI
 
         }
 
-        public async Task<List<double>> GetPointsForTrigonometricFunctions()
+        public async Task<List<double>> GetPointsForTrigonometricFuncsOrInfinityCurves()
         {
-            bool infinityAtZero = false;
-            bool infinityAtNinty = false;
-            bool infinityAt180 = false;
-            bool isNan = false;
             List<double> xPoints = new List<double>();
-            Evaluator eval = new Evaluator();
-            if (_isTrigonometricFunction)
-            {                
-                double res = eval.ParseExpressionForSingleValue(_expression, 0);
-                if (double.IsNaN(res))
-                {
-                    isNan = true;
-                }
-                else if (res == double.PositiveInfinity || res == double.NegativeInfinity || res >= 999 || res <= -999)
-                {
-                    _isInfinityCurve = true;
-                    infinityAtZero = true;
-                }
-                res = eval.ParseExpressionForSingleValue(_expression,  Math.PI / 2);
-                if (double.IsNaN(res))
-                {
-                    isNan = true;
-                }
-                else if (double.IsNaN(res) || res == double.PositiveInfinity || res == double.NegativeInfinity || res >= 999 || res <= -999)
-                {
-                    _isInfinityCurve = true;
-                    infinityAtNinty = true;
-                }
-
+            if (!_isTrigonometricFunction) return xPoints;
+            
+            bool infinityAtZero = false, infinityAtNinty = false, isNan = false;
+            int infinityTolerance = 999; //assuming the curve tends to infinity
+            
+            Evaluator eval = new Evaluator();            
+                          
+            //check value of the function at zero if it is NaN or infinity
+            double res = eval.ParseExpressionForSingleValue(_expression, 0);
+            if (double.IsNaN(res))
+            {
+                isNan = true;                
+            }
                 
-                if (isNan) return xPoints;
-                if (infinityAtZero || infinityAtNinty || (!infinityAtZero && !infinityAtNinty))
-                //if (infinityAtZero || infinityAtNinty)
+            if (double.IsPositiveInfinity(res) || double.IsNegativeInfinity(res) || res >= infinityTolerance || res <= -1* infinityTolerance)
+            {
+                _isInfinityCurve = true;
+                infinityAtZero = true;
+            }
+
+            //check value of the function at PI/2 or 90deg if it is NaN or infinity
+            res = eval.ParseExpressionForSingleValue(_expression,  Math.PI / 2);
+            if (double.IsNaN(res))
+            {
+                isNan = true;
+            }
+                 
+            if (double.IsPositiveInfinity(res) || double.IsNegativeInfinity(res) || res >= infinityTolerance || res <= -1* infinityTolerance)
+            {
+                _isInfinityCurve = true;
+                infinityAtNinty = true;
+            }
+
+            if (isNan && !_isInfinityCurve) return xPoints;
+            //if the curve tends to infinity, get the proximity values to display the graph until those points
+            if (infinityAtZero || infinityAtNinty || (!infinityAtZero && !infinityAtNinty))
+            {
+                //from origin to positive X values
+                int initialValue = ((infinityAtZero) || (!infinityAtZero && !infinityAtNinty)) ? 0 : 1;
+                int increment = ((infinityAtZero && infinityAtNinty) || (!infinityAtZero && !infinityAtNinty)) ? 1 : 2;
+                  
+                for (int i = initialValue; ; i += increment)
                 {
-                    int initialValue = ((infinityAtZero) || (!infinityAtZero && !infinityAtNinty)) ? 0 : 1;
-                    int increment = ((infinityAtZero && infinityAtNinty) || (!infinityAtZero && !infinityAtNinty)) ? 1 : 2;
-                    //int initialValue = ((infinityAtZero)) ? 0 : 1;
-                    //int increment = ((infinityAtZero && infinityAtNinty)) ? 1 : 2;
-
-                    for (int i = initialValue; ; i += increment)
+                    if (i * Math.PI / 2 <= _xMax)
                     {
-                        if (i * Math.PI / 2 <= _xMax)
-                        {
-                            if (i != 0)
-                            {
-                                xPoints.Add(i * Math.PI / 2 - 0.0000001);
-                                xPoints.Add(i * Math.PI / 2 + 0.0000001);
-                            }
-
-                            xPoints.Add(i * Math.PI / 2 - 0.0001);
-                            xPoints.Add(i * Math.PI / 2 + 0.0001);
-
-                            xPoints.Add(i * Math.PI / 2 - 0.001);
-                            xPoints.Add(i * Math.PI / 2 + 0.001);
-
-                        }
-                        else
-                            break;
-                    }
-                    initialValue = ((infinityAtNinty) || (!infinityAtZero && !infinityAtNinty)) ? -1 : -2;
-                    //initialValue = ((infinityAtNinty)) ? -1 : -2;
-                    for (int i = initialValue; ; i -= increment)
-                    {
-                        if (i * Math.PI / 2 >= _xMin)
+                        //used these tolerances after some trail and error to find the close proximity values
+                        if (i != 0)
                         {
                             xPoints.Add(i * Math.PI / 2 - 0.0000001);
                             xPoints.Add(i * Math.PI / 2 + 0.0000001);
-
-                            xPoints.Add(i * Math.PI / 2 - 0.0001);
-                            xPoints.Add(i * Math.PI / 2 + 0.0001);
-
-                            xPoints.Add(i * Math.PI / 2 - 0.001);
-                            xPoints.Add(i * Math.PI / 2 + 0.001);
                         }
-                        else
-                            break;
+
+                        xPoints.Add(i * Math.PI / 2 - 0.0001);
+                        xPoints.Add(i * Math.PI / 2 + 0.0001);
+
+                        xPoints.Add(i * Math.PI / 2 - 0.001);
+                        xPoints.Add(i * Math.PI / 2 + 0.001);
+
                     }
+                    else
+                        break;
+                }
+
+                //for negative X values
+                initialValue = ((infinityAtNinty) || (!infinityAtZero && !infinityAtNinty)) ? -1 : -2;
+                for (int i = initialValue; ; i -= increment)
+                {
+                    if (i * Math.PI / 2 >= _xMin)
+                    {
+                        xPoints.Add(i * Math.PI / 2 - 0.0000001);
+                        xPoints.Add(i * Math.PI / 2 + 0.0000001);
+
+                        xPoints.Add(i * Math.PI / 2 - 0.0001);
+                        xPoints.Add(i * Math.PI / 2 + 0.0001);
+
+                        xPoints.Add(i * Math.PI / 2 - 0.001);
+                        xPoints.Add(i * Math.PI / 2 + 0.001);
+                    }
+                    else
+                        break;
                 }
             }
-            else
-            {
-                double res = eval.ParseExpressionForSingleValue(_expression, 0);
-                if (double.IsNaN(res))
-                {                      
-
-                    xPoints.Add(0 - 0.01);
-                    xPoints.Add(0 + 0.01);
-
-                    xPoints.Add(0 - 0.05);
-                    xPoints.Add(0 + 0.05);
-                }
-            }
-            
             
             return xPoints;
         }
@@ -297,7 +291,6 @@ namespace MatCom.UI
                 }
                 while (x <= (decimal)_xOriginalMax)
                 {
-                    //transformX = _origin.X + (x * _xAxisLinesGap / (_zoomFactor * _steps));
                     transformX = (decimal)_origin.X + (x * (decimal)_xAxisLinesGap / ((decimal)_steps));
                     if (0 <= transformX && transformX <= (decimal)_canvasWidth)
                     {
@@ -307,73 +300,54 @@ namespace MatCom.UI
                     }
                     x = x + (decimal)_stepsToCalculatePoints;
                 }
-                //if (_isInfinityCurve || _isTrigonometricFunction)
-                {
-                    xPoints.AddRange(await GetPointsForTrigonometricFunctions());
-                }
+                if (_isTrigonometricFunction)
+                    xPoints.AddRange(await GetPointsForTrigonometricFuncsOrInfinityCurves());
+                //for other functions check the curve tends to infinity after calculating y values
+                
                 ExpressionValues expValues = _expressionValues.Where(i => i.Expression == function).FirstOrDefault();
                 List<GraphPoint> graphPoints;
                 Evaluator eval = new Evaluator();
                 if (expValues == null)
                 {
-                    //graphPoints = Evaluator.Evaluate((decimal)_xMin, (decimal)_xMax, (decimal)_stepsToCalculatePoints, _expression);
                     await eval.Evaluate(xPoints, _expression);
                     graphPoints = eval.GraphPoints;
-                    var nanPoints = graphPoints.Where(i => double.IsNaN(i.Y)).ToList();
-                    if (nanPoints.Count > 0)
-                    {
-                        xPoints = new List<double>();
-                        foreach (GraphPoint p in nanPoints)
-                        {
-                            xPoints.Add(p.X - 0.01);
-                            xPoints.Add(p.X + 0.01);
-
-                            xPoints.Add(p.X - 0.015);
-                            xPoints.Add(p.X + 0.015);
-                        }
-                        await eval.Evaluate(xPoints, _expression);
-                        graphPoints.AddRange(eval.GraphPoints);
-                    }
-                    
                     expValues = new ExpressionValues()
                     {
                         Expression = _expression,
                         GraphPoints = graphPoints
                     };
-                    //_expressionValues.Clear();
                     _expressionValues.Add(expValues);
-                    //expValues.GraphPoints.OrderBy(i => i.X);
                 }
                 else
                 {
                     List<double> xPointsToEvaluate = xPoints.Where(x => !expValues.GraphPoints.Any(pt => pt.X == x)).ToList();
                     await eval.Evaluate(xPointsToEvaluate, _expression);
                     graphPoints = eval.GraphPoints;
-                    var nanPoints = graphPoints.Where(i => double.IsNaN(i.Y)).ToList();
-                    if (nanPoints.Count > 0)
-                    {
-                        xPoints = new List<double>();
-                        foreach (GraphPoint p in nanPoints)
-                        {
-                            xPoints.Add(p.X - 0.01);
-                            xPoints.Add(p.X + 0.01);
-
-                            xPoints.Add(p.X - 0.015);
-                            xPoints.Add(p.X + 0.015);
-                        }
-                        await eval.Evaluate(xPoints, _expression);
-                        graphPoints.AddRange(eval.GraphPoints);
-                    }
-                    expValues.GraphPoints.AddRange(graphPoints);                    
+                    expValues.GraphPoints.AddRange(graphPoints);
                 }
-                //if (_expression.ToLower().Contains("tan"))
-                //{
-                //    expValues.GraphPoints.Add(new GraphPoint(Math.PI/2,Math.Tan(Math.PI/2)));
-                //}
-                expValues.GraphPoints = expValues.GraphPoints.DistinctBy(i => i.X).OrderBy(j => j.X).ToList();
-                graphPoints = expValues.GraphPoints;
+                //check if the y values are NaN (possibility of curve tends to infinity). 
+                //get the proximity values to plot the curve
+                var nanPoints = graphPoints.Where(i => double.IsNaN(i.Y) || double.IsNegativeInfinity(i.Y) || double.IsPositiveInfinity(i.Y)).ToList();
+                if (nanPoints.Count > 0)
+                {
+                    xPoints = new List<double>();
+                    foreach (GraphPoint p in nanPoints)
+                    {
+                        xPoints.Add(0 - 0.05);
+                        xPoints.Add(0 + 0.05);
 
-                return graphPoints;
+                        xPoints.Add(p.X - 0.01);
+                        xPoints.Add(p.X + 0.01);
+
+                        xPoints.Add(p.X - 0.015);
+                        xPoints.Add(p.X + 0.015);
+                    }
+                    await eval.Evaluate(xPoints, _expression);
+                    expValues.GraphPoints.AddRange(eval.GraphPoints);
+                }
+
+                expValues.GraphPoints = expValues.GraphPoints.DistinctBy(i => i.X).OrderBy(j => j.X).ToList();
+                return expValues.GraphPoints;
             }
             catch(Exception ex)
             {
@@ -507,7 +481,6 @@ namespace MatCom.UI
                     {
                         axisLabels.Add(new AxisLabel(_origin.X, y, "-" + FormatLabel(_steps * idx), AxisType.YAxis));
                         axisLabels.Add(new AxisLabel(xAxisLine.X1, y, "-" + FormatLabel(_steps * idx), AxisType.YAxis));
-                        //axisLabels.Add(new AxisLabel(xAxisLine.X2, y, "-" + FormatLabel(_steps * idx), AxisType.YAxis));
                     }
                 }
                 y += _xAxisLinesGap;
@@ -529,7 +502,7 @@ namespace MatCom.UI
                 idx++;
                 if (0 <= x && x <= _canvasWidth)
                 {
-                    _xOriginalMax = (idx > _xOriginalMax) ? idx : _xOriginalMax;
+                    //_xOriginalMax = (idx > _xOriginalMax) ? idx : _xOriginalMax;
                     yAxisLine = new Line()
                     {
                         X1 = x,
@@ -553,8 +526,9 @@ namespace MatCom.UI
                 x = x + _yAxisLinesGap;
 
             }
-            _xOriginalMax = _steps * (idx+1) * 5;
             AddAxisLabels(axisLabels);
+            _xOriginalMax = _steps * (idx+1) * 5; // to calculate the Y values only within the X range visible on the canvas
+            
         }
 
         ////draw y-axis lines - left to the origin
@@ -572,7 +546,7 @@ namespace MatCom.UI
                 negIdx = idx * -1;
                 if (0 <= x && x <= _canvasWidth)
                 {
-                    _xOriginalMin = (negIdx < _xOriginalMin) ? negIdx : _xOriginalMax;
+                    //_xOriginalMin = (negIdx < _xOriginalMin) ? negIdx : _xOriginalMax;
                     yAxisLine = new Line()
                     {
                         X1 = x,
@@ -593,8 +567,9 @@ namespace MatCom.UI
                 x = x - _yAxisLinesGap;
             }
             AddAxisLabels(axisLabels);
-            _xOriginalMin = -1 * _steps * (idx+1) * 5;
+            _xOriginalMin = -1 * _steps * (idx+1) * 5; // to calculate the Y values only within the X range visible on the canvas
         }
+        //remove all the points and labels for the zero crossing
         private void ClearZeroCrossingPoints()
         {
             txtBlockErrorMessage.Text = "";
@@ -622,6 +597,8 @@ namespace MatCom.UI
                 }
             }
         }
+
+        //calculate the points where the curve (y value) goes from negative to positive or positive to negative
         private List<ZeroCrossingRange> FindZeroCrossingPointsRange()
         {
             List<ZeroCrossingRange> lstZeroCrossingRanges = new List<ZeroCrossingRange>();
@@ -650,6 +627,7 @@ namespace MatCom.UI
             }
             return lstZeroCrossingRanges;
         }
+        //add red circle points and labels with X values for zero crossing
         private void AddZeroCrossingPoints(List<Point> points)
         {
             double pointDia = 10;
@@ -689,6 +667,7 @@ namespace MatCom.UI
             }
             
         }
+        //get the zero crossing points using bisection method
         private void BtnZeroCrossing_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -748,7 +727,7 @@ namespace MatCom.UI
             ResetValues();
             DawGridLines();            
         }
-
+        //to display point on the curve when the mouse is hovered on the curve
         private void ChartCanvas_MouseMove(object sender, MouseEventArgs e)
         {
             /*
@@ -776,43 +755,41 @@ namespace MatCom.UI
             }
             if (txtBlock != null)
                 chartCanvas.Children.Remove(txtBlock);
-            //add all path geometries to the collection and then verify if the point exists on any of the collection objects
-            if(_pathGeometry != null && _pathGeometry.StrokeContains(_pen, p))
+            // verify if the point exists on any of the curve objects in the collection
+            if(_lstPathGeometry != null && _lstPathGeometry.Count > 0)
             {
-                double xPoint = (p.X - _origin.X) * _steps / _xAxisLinesGap;
-                //double yPoint = (_origin.Y - p.Y) * _steps / _yAxisLinesGap;
-                //using parse function to get the precise Y value for the given X value
-                Evaluator evaluator = new Evaluator();
-                double yPoint = evaluator.ParseExpressionForSingleValue(_expression, xPoint);                
-                TextBlock textBlock = new TextBlock();
-                textBlock.Name = "mouseposition";
-                string precision = (_steps <= 0.5) ? "N6" : "N3";
-                textBlock.Text = "(x: " + xPoint.ToString(precision) + " , y: " + yPoint.ToString(precision) + ")";
-                textBlock.FontSize = 14.0;
-                textBlock.Background = new SolidColorBrush(Colors.White);
-                textBlock.TextAlignment = TextAlignment.Right;
-                textBlock.Measure(new System.Windows.Size(Double.PositiveInfinity, Double.PositiveInfinity));
-                textBlock.Arrange(new Rect(textBlock.DesiredSize));
-                textBlock.Padding = new Thickness(10);
-                Canvas.SetLeft(textBlock, p.X); 
-                Canvas.SetTop(textBlock, p.Y); 
+                foreach(PathGeometry geo in _lstPathGeometry)
+                {
+                    if(geo.StrokeContains(_pen, p))
+                    {
+                        double xPoint = (p.X - _origin.X) * _steps / _xAxisLinesGap;
+                        //double yPoint = (_origin.Y - p.Y) * _steps / _yAxisLinesGap;
+                        //using parse function to get the precise Y value for the given X value
+                        Evaluator evaluator = new Evaluator();
+                        double yPoint = evaluator.ParseExpressionForSingleValue(_expression, xPoint);
+                        TextBlock textBlock = new TextBlock();
+                        textBlock.Name = "mouseposition";
+                        string precision = (_steps <= 0.5) ? "N6" : "N3";
+                        textBlock.Text = "(x: " + xPoint.ToString(precision) + " , y: " + yPoint.ToString(precision) + ")";
+                        textBlock.FontSize = 14.0;
+                        textBlock.Background = new SolidColorBrush(Colors.White);
+                        textBlock.TextAlignment = TextAlignment.Right;
+                        textBlock.Measure(new System.Windows.Size(Double.PositiveInfinity, Double.PositiveInfinity));
+                        textBlock.Arrange(new Rect(textBlock.DesiredSize));
+                        textBlock.Padding = new Thickness(10);
+                        Canvas.SetLeft(textBlock, p.X);
+                        Canvas.SetTop(textBlock, p.Y);
 
-                chartCanvas.Children.Add(textBlock);
+                        chartCanvas.Children.Add(textBlock);
+                    }
+                }                
             }
             
         }
-
-        //private void BtnDifferentiation_Click(object sender, RoutedEventArgs e)
-        //{
-
-        //}
-
         private string FormatLabel(double val)
         {
             return val.ToString("N3").TrimEnd('0').TrimEnd('.');
         }
-               
-
         private void AddAxisLabels(List<AxisLabel> axisLabels)
         {
             for (int i = 0; i < axisLabels.Count; i++)
@@ -885,13 +862,7 @@ namespace MatCom.UI
                         List<GraphPoint> graphPoints =await CalculatePoints(_expression);
                         if (graphPoints != null)
                         {
-                            PlotTrigonometricCurve(graphPoints, Brushes.Blue);
-                            //if (_isInfinityCurve)
-                            //{
-                            //    PlotTrigonometricCurve(graphPoints, Brushes.Blue);                                
-                            //}                                                           
-                            //else
-                            //    PlotCurve(graphPoints, Brushes.Blue);
+                            PlotCurve(graphPoints, Brushes.Blue);                            
                             ClearZeroCrossingPoints();
                             AddZeroCrossingPoints(_zeroCrossingPoints);
                         }                        
@@ -905,33 +876,10 @@ namespace MatCom.UI
             }
         }
 
-        private void PlotTrigonometricCurve(List<GraphPoint> points, System.Windows.Media.SolidColorBrush color)
+        private void PlotCurve(List<GraphPoint> points, System.Windows.Media.SolidColorBrush color)
         {
             if (points == null || (points != null && points.Count == 0)) return;
-            double tolerance = 0;
-            /*int initialValue = (_expression.Contains("tan") || _expression.Contains("sec")) ? 1 : 0;
-            for (int idx = -1 * initialValue; ; idx += 2)
-            {
-                if (idx * Math.PI / 2 <= _xMax)
-                {
-                    List<GraphPoint> curvePoints = points.Where(i => i.X > (idx * Math.PI / 2 + tolerance) && i.X < ((idx + 2) * Math.PI / 2 - tolerance)).ToList();
-                    PlotCurve(curvePoints, color);
-                }
-                else
-                    break;
-
-            }
-            for (int idx = -1 * initialValue; ; idx -= 2)
-            {
-                if (idx * Math.PI / 2 >= _xMin)
-                {
-                    List<GraphPoint> curvePoints = points.Where(i => i.X > (idx * Math.PI / 2 + tolerance) && i.X < ((idx + 2) * Math.PI / 2 - tolerance)).ToList();
-                    PlotCurve(curvePoints, color);
-                }
-                else
-                    break;
-
-            }*/
+            double tolerance = 0;            
 
             string previousPoint = "", currentPoint = "";
             double previousPointY = 0.0, currentPointY = 0.0;
@@ -943,15 +891,18 @@ namespace MatCom.UI
                     continue;
                 currentPointY = p.Y;
                 currentPointX = p.X;
-                currentPoint = (currentPointY >= tolerance) ? "P" : "N";                
+                currentPoint = (currentPointY >= tolerance) ? "P" : "N";
+                //if it is a Trigonometric Function, the curve goes from positive infinity to negative infinity,
+                //break the curves into individual curves for plotting
                 if (_isTrigonometricFunction && (previousPoint == "N" && currentPoint == "P" && currentPointY >= 999) || (previousPoint == "P" && currentPoint == "N" && currentPointY <= -999))
-                {                    
-                    PlotCurve(curvePoints, color);
+                {
+                    PlotIndividualCurve(curvePoints, color);
                     curvePoints = new List<GraphPoint>();                    
                 }
+                //it is a polynomial function, break the curves where y value is NaN
                 if((double.IsNaN( currentPointY)))
                 {
-                    PlotCurve(curvePoints, color);
+                    PlotIndividualCurve(curvePoints, color);
                     curvePoints = new List<GraphPoint>();
                 }
                 if(!(double.IsNaN(currentPointY)))
@@ -961,10 +912,10 @@ namespace MatCom.UI
                 previousPointX = currentPointX;
             }
             if(curvePoints.Count > 0)
-                PlotCurve(curvePoints, color);
+                PlotIndividualCurve(curvePoints, color);
         }
 
-        private void PlotCurve(List<GraphPoint> values, System.Windows.Media.SolidColorBrush color)
+        private void PlotIndividualCurve(List<GraphPoint> values, System.Windows.Media.SolidColorBrush color)
         {
             List<System.Windows.Point> points = new List<System.Windows.Point>();
             foreach (var value in values)
@@ -1042,7 +993,7 @@ namespace MatCom.UI
             path.Data = pathGeometry;
 
             chartCanvas.Children.Add(path);
-            _pathGeometry = pathGeometry;
+            _lstPathGeometry.Add(pathGeometry);
             
             Canvas.SetZIndex(path, 1);
         }

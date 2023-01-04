@@ -86,6 +86,7 @@ namespace MatCom.UI
             rtbOutputWindow.ScrollToEnd();
             txtInput.Text = "";
             txtInput.Focus();
+            _parser = new Parser();
         }
         private void BtnClear_Click(object sender, RoutedEventArgs e)
         {
@@ -97,7 +98,6 @@ namespace MatCom.UI
         {
             rtbOutputWindow.AppendText(inputStr);
             rtbOutputWindow.ScrollToEnd();
-            //rtbOutputWindow.Document.Blocks.Add(new Paragraph(new Run(inputStr)));
         }
 
 
@@ -115,15 +115,12 @@ namespace MatCom.UI
                 SetRichTextBoxInput(expression);
                 //_parser = new Parser();
                 string result = _parser.Parse(expression);
-                //MessageBox.Show(s.Evaluate());
+                
                 SetRichTextBoxInput("\r>> " + result);
                 SetRichTextBoxInput("\nMatCom > ");
             }
             catch (Exception ex)
             {
-                //MessageBox.Show(ex.Message);
-                //SetRichTextBoxInput("\r>> " + ex.Message);
-                //SetRichTextBoxInput("\nMatCom > ");
 
                 TextRange rangeOfText1 = new TextRange(rtbOutputWindow.Document.ContentEnd, rtbOutputWindow.Document.ContentEnd);
                 rangeOfText1.Text = "\r>> " + ex.Message;

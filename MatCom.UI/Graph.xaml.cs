@@ -971,7 +971,11 @@ namespace MatCom.UI
 
             PathSegmentCollection pathSegmentCollection = new PathSegmentCollection();
 
-            for (int i = 0; i < points.Count - 2; i = i + 2)
+            PolyBezierSegment bezierSeg = new PolyBezierSegment();
+            bezierSeg.Points = pointCollection;
+            pathSegmentCollection.Add(bezierSeg);
+
+            /*for (int i = 0; i < points.Count - 2; i = i + 2)
             {
                 //System.Windows.Point p1 = points[i];
                 //System.Windows.Point p2 = points[i + 1];
@@ -988,7 +992,7 @@ namespace MatCom.UI
                 pathSegmentCollection.Add(seg);
 
 
-            }
+            }*/
             pathFigure.Segments = pathSegmentCollection;
 
             PathFigureCollection pathFigureColl = new PathFigureCollection();

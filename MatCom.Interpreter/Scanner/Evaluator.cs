@@ -55,7 +55,7 @@ namespace MatCom.Interpreter.Scanner
         public void Parsing(string expression, double x)
         {
             Parser parser = new Parser();
-            expression = expression.Replace("x", x.ToString());   
+            expression = expression.Replace("x", x.ToString(), StringComparison.OrdinalIgnoreCase);   
             double y = Convert.ToDouble(parser.Parse(expression));
             //if(!Double.IsNaN(y))
                 Points.TryAdd(x, y);

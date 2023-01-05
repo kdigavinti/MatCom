@@ -16,7 +16,7 @@ namespace MatCom.Interpreter.Scanner
     public class Parser
     {
         Token _currToken;
-        List<Token> Tokens;
+        public List<Token> Tokens;
         int _currentPosition = 0;
         public Environment _environment;
         private string _expression { get; set; }

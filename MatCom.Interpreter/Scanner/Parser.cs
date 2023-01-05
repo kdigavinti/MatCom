@@ -121,14 +121,6 @@ namespace MatCom.Interpreter.Scanner
             return variable;
         }
 
-        /*
-     * statement = identifier ":=" boolExpression;
-     * boolExpression = expression [('==' | '!=' | '<' | '<=' | '>' | '>=') expression];
-     * expression = ["+"|"-"] term {("+"|"-"|'||') term};
-     * term = factor {("*"|"/"|"%"|'&&') factor};
-     *  factor = identifier | number | "(" expression ")" | - (Exp);
-     */
-
         AST? BooleanExpression()
         {
             AST? boolExpression = Expression();
@@ -164,16 +156,6 @@ namespace MatCom.Interpreter.Scanner
 
         AST? Term()
         {
-            /* AST? term = Factor();
-             string _operator = string.Empty;
-             while (_currToken.type != TokenType.EOF && term != null && _currToken.value is "^" or "*" or "/" or "|" or "&" or "<" or ">" or "<=" or ">=" or "==" or "!=" or "&&" or "||")
-             {
-                 _operator = _currToken.value;
-                 NextToken();
-                 AST? rightNode = Factor();
-                 term = new ASTBinaryOp(term, rightNode, _operator);
-             }
-             return term;*/
             AST? term = Power();
             string _operator = string.Empty;
             while (_currToken.type != TokenType.EOF && term != null && _currToken.value is "*" or "/" or "%" or "&&")
@@ -255,33 +237,7 @@ namespace MatCom.Interpreter.Scanner
                                 factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), _currToken.value));
                             GetToken();
                         }                        
-                        Match(")");//Eat )
-                        //NextToken();
-                        /* if(_expression.Contains(")"))
-                         {
-                             string functionInput = string.Empty;
-                             NextToken();//Skip left parantheses
-                             int leftParanthesesCount = 1;
-                             while (leftParanthesesCount != 0 && _currToken.value != "")
-                             {
-                                 if (_currToken.value == "(")
-                                     leftParanthesesCount++;
-                                 functionInput += _currToken.value;
-                                 NextToken();
-                                 if (_currToken.value == ")")
-                                     leftParanthesesCount--;
-                             }
-                             if(leftParanthesesCount != 0)
-                             {
-                                 throw new Exception($"Closing Parantheses not found at position {_currToken.position}");
-                             }
-                             factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), functionInput));
-                         }
-                         else
-                         {
-                             throw new Exception($"Closing Parantheses not found at position {_currToken.position}");
-                         }
-                         NextToken(); //eat Token )*/
+                        Match(")");
                     }
                     else
                         throw new Exception($"Invalid Function {_currToken.value} at position {_currToken.position}");
@@ -302,71 +258,5 @@ namespace MatCom.Interpreter.Scanner
                 throw new Exception($"Expected token {expected} at position {_currentPosition}");
             }
         }
-
-      /*  public Queue<Token> Parse1(string expression)
-        {
-            if (string.IsNullOrEmpty(expression))
-            {
-                throw new ArgumentException("Expression is empty");
-            }
-            Lexer lexer = new(expression);
-            List<Token> tokens = lexer.Tokenize();
-
-            foreach (Token token in tokens)
-            {
-                System.Diagnostics.Debug.WriteLine("{0, -25} {1, -18}", token.Type, token.Value);
-            }
-            var stack = new Stack<Token>();
-              var queue = new Queue<Token>();
-              foreach (Token token in tokens)
-              {
-                  if (token != null)
-                  {
-                    switch (token.Type)
-                    {
-                        case TokenType.Number:
-                        case TokenType.Unary:
-                        case TokenType.Identifier:
-                        case TokenType.Constants:
-                            queue.Enqueue(token);
-                            Print(token.Value);
-                            break;
-                        case TokenType.Operator:
-                            while(stack.Count > 0 && token.Priority <= stack.Peek().Priority)
-                            {
-                                queue.Enqueue(stack.Pop());
-                                Print(token.Value);
-                            }
-                            stack.Push(token);
-                            Print(token.Value);
-                            break;
-                        case TokenType.LeftParantheses:
-                        case TokenType.Functions:
-                            stack.Push(token);
-                            Print(token.Value);
-                            break;
-                        case TokenType.RightParantheses:
-                            Token stackTopToken;
-                            while((stackTopToken = stack.Pop()).Type != TokenType.LeftParantheses )
-                            {
-                                queue.Enqueue(stackTopToken);
-                                Print(token.Value);
-                            }
-                            break;
-                        default:break;
-                    }
-                  }
-              }
-              Token elem;
-              while(stack.Count > 0 && (elem = stack.Pop()).Type != TokenType.LeftParantheses )
-              {
-                queue.Enqueue(elem);
-                Print(elem.Value);
-              }
-            void Print(string action) => System.Diagnostics.Debug.WriteLine("{0,-4} {1,-18} {2}", action + ":", $"stack[ {string.Join(" ", stack.Reverse())} ]", $"out[ {string.Join(" ", queue)} ]");
-            return queue;
-              
-        }*/
-
     }
 }

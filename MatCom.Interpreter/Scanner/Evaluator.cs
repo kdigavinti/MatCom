@@ -24,18 +24,6 @@ namespace MatCom.Interpreter.Scanner
             this.tokens = tokens;
         }
 
-        public Dictionary<string, Object> SymbolTableValues()
-        {
-            Environment env = new Environment();
-            return env.values;
-        }
-
-        public Dictionary<string, string> SymbolTableValueByRefs()
-        {
-            Environment env = new Environment();
-            return env.valueByRef;
-        }
-
         //added by Kiran
         public double ParseExpressionForSingleValue(string expression, double x)
         {
@@ -115,7 +103,7 @@ namespace MatCom.Interpreter.Scanner
             return GraphPoints;
         }
 
-        public void Differentiate(string expression, string value)
+    /*    public void Differentiate(string expression, string value)
         {
             if(Validate(expression))
             {
@@ -190,7 +178,7 @@ namespace MatCom.Interpreter.Scanner
                     }
                 }
             }
-        }
+        }*/
         //public async Task RunTasks(List<double> points, string expression)
         //{
         //    var tasksList = new List<Task>();

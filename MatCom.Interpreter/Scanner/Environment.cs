@@ -8,26 +8,26 @@ namespace MatCom.Interpreter.Scanner
 {
     public class Environment
     {
-        public Dictionary<string, Object> values = new Dictionary<string, object>();
-        public Dictionary<string, string> valueByRef = new Dictionary<string, string>();  
+        public Dictionary<string, Object> Values = new Dictionary<string, object>();
+        public Dictionary<string, string> ValuesByRef = new Dictionary<string, string>();  
 
         public void assign(string identifier, object value)
         {            
-            if (values.ContainsKey(identifier))
+            if (Values.ContainsKey(identifier))
             {
-                values[identifier] = value;
+                Values[identifier] = value;
             }
             else
             {
-                values.Add(identifier, value);  
+                Values.Add(identifier, value);  
             }
         }
 
         public Object? getValue(string identifier)
         {
-            if (values.ContainsKey(identifier))
+            if (Values.ContainsKey(identifier))
             {
-                if(valueByRef.ContainsKey(identifier))
+                if(ValuesByRef.ContainsKey(identifier))
                     return getValueByRef(identifier);
             }
             return null;
@@ -35,23 +35,23 @@ namespace MatCom.Interpreter.Scanner
 
         public void assignValueByRef(string left, string right)
         {
-            if(valueByRef.ContainsKey(left))
+            if(ValuesByRef.ContainsKey(left))
             {
-                valueByRef[left] = right;
+                ValuesByRef[left] = right;
             }
             else
             {
-                valueByRef.Add(left, right);
+                ValuesByRef.Add(left, right);
             }
         }
 
         public Object? getValueByRef(string identifier)
         {
-            if (valueByRef.ContainsKey(identifier))
+            if (ValuesByRef.ContainsKey(identifier))
             {
-                string _refValue = valueByRef[identifier].ToString();
+                string _refValue = ValuesByRef[identifier].ToString();
                 string _expression = string.Empty;
-                foreach(var item in values)
+                foreach(var item in Values)
                 {
                     if(_refValue.Contains(item.Key))
                     {

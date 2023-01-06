@@ -44,7 +44,8 @@ namespace MatCom.Interpreter.Scanner
                 {"tan","Tan" },
                 {"csc", "Csc" },
                 {"sec", "Sec" },
-                {"cot", "Cot" }
+                {"cot", "Cot" },
+                {"diff","Diff" }
             };
 
         public static Dictionary<string, string> Keywords =
@@ -89,6 +90,7 @@ namespace MatCom.Interpreter.Scanner
                     case "csc": result = 1 / Math.Sin(_value); break;
                     case "sec": result = 1 / Math.Cos(_value); break;
                     case "cot": result = 1 / Math.Tan(_value); break;
+                    case "diff": result = _value; break;
                     default: break;
                 }
             }
@@ -96,6 +98,11 @@ namespace MatCom.Interpreter.Scanner
                 throw new Exception("Invalid values for the function");
             return result;
         }
+
+        //public static double Differentiate(string value)
+        //{
+
+        //}
 
     }
 }

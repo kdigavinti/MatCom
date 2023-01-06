@@ -18,14 +18,14 @@ namespace MatCom.Interpreter.Scanner
         Token _currToken;
         public List<Token> Tokens;
         int _currentPosition = 0;
-        public Environment _environment;
+        public Environment EnvVariables;
         private string _expression { get; set; }
         //private string expression { get; set; }
 
         public Parser()
         {
-            if (_environment == null)
-                _environment = new Environment();
+            if (EnvVariables == null)
+                EnvVariables = new Environment();
 
             if(_currToken == null)
                 _currToken = new Token(TokenType.Unknown, "", -1);
@@ -34,7 +34,11 @@ namespace MatCom.Interpreter.Scanner
         public string Parse(string text)
         {
             _expression = text;
-           Lexer lexer = new Lexer(text);
+          /*(  if (text.StartsWith("diff("))
+            {
+                _expression = Differentiate(_expression);
+            }*/
+            Lexer lexer = new Lexer(_expression);
             _currentPosition = 0;
             Tokens = lexer.Tokenize();
             //foreach (Token token in Tokens)
@@ -45,6 +49,17 @@ namespace MatCom.Interpreter.Scanner
             AST? statement = Statement();
             ExpectToken(TokenType.EOF);
             return statement.Eval().ToString();
+            
+        }
+
+        bool Validate(string expression)
+        {
+            expression = expression.Replace("x", "1", StringComparison.OrdinalIgnoreCase);
+            if (Parse(expression) != "")
+            {
+                return true;
+            }
+            return false;
         }
 
         void GetToken()
@@ -94,7 +109,7 @@ namespace MatCom.Interpreter.Scanner
                 { 
                     string left = split[0].Trim();
                     string right = split[1].Trim();
-                    _environment.assignValueByRef(left, right);
+                    EnvVariables.assignValueByRef(left, right);
                 }
                return Assignment();
             }
@@ -114,7 +129,7 @@ namespace MatCom.Interpreter.Scanner
             {                
                 GetToken();
                 AST? rightNode = BooleanExpression();
-                _environment.assign(variable.ToString(), rightNode.Eval());
+                EnvVariables.assign(variable.ToString(), rightNode.Eval());
                 variable = new ASTStringLeaf(variable.ToString() + "=" + rightNode.Eval().ToString());
               //  NextToken();
             }
@@ -201,7 +216,7 @@ namespace MatCom.Interpreter.Scanner
                     factor = BooleanExpression();
                     break;
                 case TokenType.Identifier:
-                    object identifierValue = _environment.getValue(_currToken.value);
+                    object identifierValue = EnvVariables.getValue(_currToken.value);
                     if (identifierValue != null)
                     {
                         factor = new ASTNumericLeaf(Convert.ToDouble(identifierValue.ToString()));
@@ -219,25 +234,35 @@ namespace MatCom.Interpreter.Scanner
                     GetToken();
                     break;
                 case TokenType.Functions:
-                    string functionName = _currToken.value;
+                    string functionName = _currToken.value;                    
                     GetToken();
                     if (_currToken.value == "(")
                     {
                         GetToken();
-                        if ((_currToken.type != TokenType.Number && _currToken.type != TokenType.Identifier) || (NextToken != null && NextToken().value != ")"))
+                        if(functionName.ToLower() == "diff")
                         {
+                            _expression = Differentiate();
+                            _currentPosition = 0;
+                            GetToken();
                             factor = BooleanExpression();
                             factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), factor.Eval().ToString()));
                         }
+                        else if ((_currToken.type != TokenType.Number && _currToken.type != TokenType.Identifier) || (NextToken != null && NextToken().value != ")"))
+                        {
+                            factor = BooleanExpression();
+                            factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), factor.Eval().ToString()));
+                            Match(")");
+                        }
                         else
                         {
-                            if(_currToken.type == TokenType.Identifier)
-                                factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), _environment.getValue(_currToken.value).ToString()));
+                            if (_currToken.type == TokenType.Identifier)
+                                factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), EnvVariables.getValue(_currToken.value).ToString()));
                             else
                                 factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), _currToken.value));
                             GetToken();
-                        }                        
-                        Match(")");
+                            Match(")");
+                        }
+                       
                     }
                     else
                         throw new Exception($"Invalid Function {_currToken.value} at position {_currToken.position}");
@@ -245,6 +270,98 @@ namespace MatCom.Interpreter.Scanner
                 default: throw new Exception($"Unexpected token {_currToken.value} at position {_currToken.position}");
             }
             return factor;
+        }
+
+        string Differentiate()
+        {
+            string expression = String.Empty;
+            for (int i=_currentPosition-1; i<Tokens.Count-2;i++)
+            {
+                expression += Tokens[i].value;
+            }            
+
+            string[] keys = new string[] { "tan", "cos", "sin" };
+
+            string sKeyResult = keys.FirstOrDefault<string>(s => expression.StartsWith(s));
+            if (sKeyResult != null && sKeyResult.Length > 0)
+            {
+
+                string trigValue = expression.Substring(expression.IndexOf("(")+1, expression.IndexOf(")") - expression.IndexOf("(") - 1);
+                switch (sKeyResult)
+                {
+                    case "tan":
+                        expression = "sec(" + trigValue + ")*sec(" + trigValue + ")";
+                        break;
+                    case "sin":
+                        expression = "cos(" + trigValue + ")";
+                        break;
+                    case "cos":
+                        expression = "sin(-" + trigValue + ")";
+                        break;
+                    case "cot":
+                        expression = "csc(-" + trigValue + ")*(csc(" + trigValue + ")";
+                        break;
+                    case "sec":
+                        expression = "sec(" + trigValue + ")*(tan(" + trigValue + ")";
+                        break;
+                    case "csc":
+                        expression = "csc(-" + trigValue + ")*(cot(" + trigValue + ")";
+                        break;
+                    default: break;
+                }
+                Lexer lexer = new Lexer(expression);
+                List<Token> TokenList = lexer.Tokenize();
+                this.Tokens = TokenList;
+            }
+            else
+            {
+                Lexer lexer = new Lexer(expression);
+                List<Token> TokenList = lexer.Tokenize();
+                if (TokenList != null)
+                {
+                    for (int i = 0; i < TokenList.Count; i++)
+                    {
+                        if (TokenList[i].type == TokenType.Identifier)
+                        {
+                            if (TokenList[i + 1].value != "^")
+                            {
+                                TokenList[i].value = "1";
+                                TokenList[i].type = TokenType.Number;
+                            }
+                        }
+
+                        if (TokenList[i].type == TokenType.Number)
+                        {
+                            if (i != TokenList.Count && TokenList[i + 1].value is "+" or "-" or " " or "" && ((i != 0 && TokenList[i - 1].value is "+" or "-") || i == 0))
+                            {
+                                TokenList[i].value = "0";
+                            }
+                        }
+
+                        if (TokenList[i].value == "^")
+                        {
+                            if (i + 1 <= TokenList.Count)
+                            {
+                                double powerValue = Convert.ToDouble(TokenList[i + 1].value);
+                                if (!Double.IsNaN(powerValue))
+                                {
+                                    TokenList[i + 1].value = (Convert.ToDouble(TokenList[i + 1].value) - 1).ToString();
+                                    TokenList.Insert(i - 1, new Token(TokenType.Number, powerValue.ToString(), i - 1));
+                                    TokenList.Insert(i, new Token(TokenType.Number, "*", i));
+                                    i = i + 2;
+                                }
+                            }
+                        }
+                    }
+                    expression = "";
+                    for (int i = 0; i < TokenList.Count; i++)
+                    {
+                        expression += TokenList[i].value;
+                    }
+                    Tokens = TokenList;
+                }
+            }
+            return expression;
         }
 
         void Match(string expected)

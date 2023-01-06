@@ -102,83 +102,105 @@ namespace MatCom.Interpreter.Scanner
             }
             return GraphPoints;
         }
-
-    /*    public void Differentiate(string expression, string value)
+        public List<GraphPoint> EvaluateNoAsync(List<double> inputPoints, string expression)
         {
-            if(Validate(expression))
+            if (Validate(expression))
             {
-                string[] keys = new string[] { "tan", "cos", "sin" };
-
-                string sKeyResult = keys.FirstOrDefault<string>(s => expression.Contains(s));
-                if (sKeyResult != null && sKeyResult.Length > 0)
+                foreach (double d in inputPoints)
                 {
-
-                    string trigValue = expression.Substring(expression.IndexOf("("), expression.IndexOf(")") - expression.IndexOf("("));
-                    switch (sKeyResult)
+                    try
                     {
-                        case "tan":
-                            expression = "sec(" + trigValue + ")*sec(" + trigValue + ")";
-                            break;
-                        case "sin":
-                            expression = "cos(" + trigValue + ")";
-                            break;
-                        case "cos":
-                            expression = "sin(-" + trigValue + ")";
-                            break;
-                        default: break;
+                        Parsing(expression, d);
+                    }
+                    catch (DivideByZeroException ex)
+                    {
+                        Points.TryAdd(d, double.NaN);
                     }
                 }
-                else
+                foreach (var item in Points.OrderBy(x => x.Key))
                 {
-                    Lexer lexer = new Lexer(expression);
-                    List<Token> TokenList = lexer.Tokenize();
-                    if (TokenList != null)
+                    GraphPoints.Add(new GraphPoint(item.Key, item.Value));
+                }
+            }
+            return GraphPoints;
+        }
+
+        /*    public void Differentiate(string expression, string value)
+            {
+                if(Validate(expression))
+                {
+                    string[] keys = new string[] { "tan", "cos", "sin" };
+
+                    string sKeyResult = keys.FirstOrDefault<string>(s => expression.Contains(s));
+                    if (sKeyResult != null && sKeyResult.Length > 0)
                     {
-                        for (int i = 0; i < TokenList.Count; i++)
+
+                        string trigValue = expression.Substring(expression.IndexOf("("), expression.IndexOf(")") - expression.IndexOf("("));
+                        switch (sKeyResult)
                         {
-                            if (TokenList[i].type == TokenType.Identifier)
+                            case "tan":
+                                expression = "sec(" + trigValue + ")*sec(" + trigValue + ")";
+                                break;
+                            case "sin":
+                                expression = "cos(" + trigValue + ")";
+                                break;
+                            case "cos":
+                                expression = "sin(-" + trigValue + ")";
+                                break;
+                            default: break;
+                        }
+                    }
+                    else
+                    {
+                        Lexer lexer = new Lexer(expression);
+                        List<Token> TokenList = lexer.Tokenize();
+                        if (TokenList != null)
+                        {
+                            for (int i = 0; i < TokenList.Count; i++)
                             {
-                                if (TokenList[i + 1].value != "^")
+                                if (TokenList[i].type == TokenType.Identifier)
                                 {
-                                    TokenList[i].value = "1";
-                                }
-                            }
-
-                            if (TokenList[i].type == TokenType.Number)
-                            {
-                                if (i != TokenList.Count && TokenList[i + 1].value is "+" or "-" or " " or "" && ((i != 0 && TokenList[i - 1].value is "+" or "-") || i == 0))
-                                {
-                                    TokenList[i].value = "0";
-                                }
-                            }
-
-                            if (TokenList[i].value == "^")
-                            {
-                                if (i + 1 <= TokenList.Count)
-                                {
-                                    double powerValue = Convert.ToDouble(TokenList[i + 1].value);
-                                    if (!Double.IsNaN(powerValue))
+                                    if (TokenList[i + 1].value != "^")
                                     {
-                                        TokenList[i + 1].value = (Convert.ToDouble(TokenList[i + 1].value) - 1).ToString();
-                                        TokenList.Insert(i - 1, new Token(TokenType.Number, powerValue.ToString(), i - 1));
-                                        TokenList.Insert(i, new Token(TokenType.Number, "*", i));
-                                        i = i + 2;
+                                        TokenList[i].value = "1";
+                                    }
+                                }
+
+                                if (TokenList[i].type == TokenType.Number)
+                                {
+                                    if (i != TokenList.Count && TokenList[i + 1].value is "+" or "-" or " " or "" && ((i != 0 && TokenList[i - 1].value is "+" or "-") || i == 0))
+                                    {
+                                        TokenList[i].value = "0";
+                                    }
+                                }
+
+                                if (TokenList[i].value == "^")
+                                {
+                                    if (i + 1 <= TokenList.Count)
+                                    {
+                                        double powerValue = Convert.ToDouble(TokenList[i + 1].value);
+                                        if (!Double.IsNaN(powerValue))
+                                        {
+                                            TokenList[i + 1].value = (Convert.ToDouble(TokenList[i + 1].value) - 1).ToString();
+                                            TokenList.Insert(i - 1, new Token(TokenType.Number, powerValue.ToString(), i - 1));
+                                            TokenList.Insert(i, new Token(TokenType.Number, "*", i));
+                                            i = i + 2;
+                                        }
                                     }
                                 }
                             }
+                            expression = "";
+                            for (int i = 0; i < TokenList.Count; i++)
+                            {
+                                expression += TokenList[i].value;
+                            }
+                            Parser parser = new Parser();
+                            parser.Parse("x=" + value);
+                            string output = parser.Parse(expression);
                         }
-                        expression = "";
-                        for (int i = 0; i < TokenList.Count; i++)
-                        {
-                            expression += TokenList[i].value;
-                        }
-                        Parser parser = new Parser();
-                        parser.Parse("x=" + value);
-                        string output = parser.Parse(expression);
                     }
                 }
-            }
-        }*/
+            }*/
         //public async Task RunTasks(List<double> points, string expression)
         //{
         //    var tasksList = new List<Task>();

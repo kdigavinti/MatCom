@@ -29,7 +29,7 @@ namespace MatCom.Interpreter.Scanner
                 match = string.Empty;
                 bool unary = false;
                 //CHECK UNARY
-                if (_currentPosition == 0 || (_currentPosition > 0 && _text[_currentPosition-1] is ' ' or '(' or '*' or '/' or '+' or '-'))
+                if (_currentPosition == 0 || (_currentPosition > 0 && _text[_currentPosition-1] is ' ' or '(' or '*' or '/' or '+' or '-' or '^'))
                 {
                     if ((match = CheckToken(@"^[-+?](\d*\.{0,1}\d+)")).Length > 0)
                     {

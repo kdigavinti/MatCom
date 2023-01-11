@@ -11,11 +11,22 @@
     <Grid>
         <DockPanel Name="dockRight">
             <TabControl DockPanel.Dock="Right" Width="350">
-                <TabItem Header="Symbol Table">
-                    <ListView></ListView>
+                <TabItem Header="Variables" Name="tabVariables">
+                    <ListView Name="lstVwVariables">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Width="80" Header="Variable" DisplayMemberBinding="{Binding Variable}"/>
+                                <GridViewColumn Width="100" Header="Actual Value" DisplayMemberBinding="{Binding ActualValue}"/>
+                                <GridViewColumn Width="140" Header="Dependency" DisplayMemberBinding="{Binding Dependency}"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
                 </TabItem>
-                <TabItem Header="Tokens" />
-                <TabItem Header="Semantics" />
+                <TabItem Header="Tokens" Name="tabTokens" MouseLeftButtonDown="TabTokens_MouseLeftButtonDown">
+                    <ListView Name="lstVwTokens"></ListView>
+                </TabItem>
+                    
+                <!--<TabItem Header="Semantics" />-->
             </TabControl>
             <StackPanel Name="Fill">
                 <RichTextBox Height="400" x:Name="rtbOutputWindow"
@@ -73,14 +84,14 @@
                             </Style>
                         </Button.Resources>
                     </Button>
-                    <Button Grid.Column="0" Grid.Row="1" FontSize="18" Name="btnLPar" Click="BtnAll_Click" Tag="(" Margin="3,1.5,1.5,1.5" Background="#FFE9E9E9">(
+                    <Button Grid.Column="0" Grid.Row="1" FontSize="18" Name="btnLPar" Click="BtnAll_Click" Tag="(" Margin="3,3,1.5,1.5" Background="#FFE9E9E9">(
                         <Button.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="5"/>
                             </Style>
                         </Button.Resources>
                     </Button>
-                    <Button Grid.Column="1" Grid.Row="1" FontSize="18" Name="btnRPar" Click="BtnAll_Click" Tag=")" Margin="3,1.5,1.5,1.5" Background="#FFE9E9E9">)
+                    <Button Grid.Column="1" Grid.Row="1" FontSize="18" Name="btnRPar" Click="BtnAll_Click" Tag=")" Margin="3,3,1.5,1.5" Background="#FFE9E9E9">)
                         <Button.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="5"/>
@@ -157,7 +168,7 @@
                             </Style>
                         </Button.Resources>
                     </Button>
-                    <Button Grid.Column="0" Grid.Row="3" FontSize="18" Name="btnLog" Click="BtnAll_Click" Tag="log" Margin="1.5,1.5,1.5,1.5" Background="#FFE9E9E9">log
+                    <Button Grid.Column="0" Grid.Row="3" FontSize="18" Name="btnLog" Click="BtnAll_Click" Tag="log" Margin="3,1.5,1.5,1.5" Background="#FFE9E9E9">log
                         <Button.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="5"/>
@@ -217,7 +228,7 @@
                             </Style>
                         </Button.Resources>
                     </Button>
-                    <Button Grid.Column="2" Grid.Row="4" FontSize="18" Name="btnNegate" Tag="negate"  Click="BtnAll_Click" Margin="3,3,1.5,1.5" Background="#FFE9E9E9">+/-
+                    <Button Grid.Column="2" Grid.Row="4" FontSize="18" Name="btnNegate" Tag="negate"  Click="BtnAll_Click" Margin="1.5,1.5,1.5,1.5" Background="#FFE9E9E9">+/-
                         <Button.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="5"/>
@@ -238,7 +249,7 @@
                             </Style>
                         </Button.Resources>
                     </Button>                    
-                    <Button Grid.Column="5" Grid.Row="4" FontSize="18" Name="btnNeg" Click="BtnAll_Click" Tag="-" Margin="1.5,1.5,1.5,1.5" Background="#FFE9E9E9">-
+                    <Button Grid.Column="5" Grid.Row="4" FontSize="18" Name="btnNeg" Click="BtnAll_Click" Tag="-" Margin="1.5,1.5,3,1.5" Background="#FFE9E9E9">-
                         <Button.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="5"/>
@@ -278,7 +289,7 @@
                         </Button.Resources>
                     </Button>
                     
-                    <Button Grid.Column="4" Grid.Row="5" FontSize="18" Name="btnMod" Click="BtnAll_Click" Tag="%" Margin="1.5,1.5,3,1.5" Background="#FFE9E9E9">%
+                    <Button Grid.Column="4" Grid.Row="5" FontSize="18" Name="btnMod" Click="BtnAll_Click" Tag="%" Margin="1.5,1.5,1.5,1.5" Background="#FFE9E9E9">%
                         <Button.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="5"/>
@@ -294,7 +305,7 @@
                     </Button>
                     
                     
-                    <Button Grid.Column="0" Grid.Row="6" FontSize="18" Name="btnSin" Click="BtnAll_Click" Tag="sin()" Margin="1.5,1.5,3,1.5" Background="#FFE9E9E9">
+                    <Button Grid.Column="0" Grid.Row="6" FontSize="18" Name="btnSin" Click="BtnAll_Click" Tag="sin()" Margin="3,1.5,1.5,1.5" Background="#FFE9E9E9">
                         <TextBlock>
                             <Run>sin</Run>
                             <Run BaselineAlignment="Subscript" FontSize="14">r</Run>
@@ -305,7 +316,7 @@
                             </Style>
                         </Button.Resources>
                     </Button>
-                    <Button Grid.Column="1" Grid.Row="6" FontSize="18" Name="btnCos" Click="BtnAll_Click" Tag="cos()" Margin="1.5,1.5,3,1.5" Background="#FFE9E9E9">
+                    <Button Grid.Column="1" Grid.Row="6" FontSize="18" Name="btnCos" Click="BtnAll_Click" Tag="cos()" Margin="1.5,1.5,1.5,1.5" Background="#FFE9E9E9">
                         <TextBlock>
                             <Run>cos</Run>
                             <Run BaselineAlignment="Subscript" FontSize="14">r</Run>
@@ -316,7 +327,7 @@
                             </Style>
                         </Button.Resources>
                     </Button>
-                    <Button Grid.Column="2" Grid.Row="6" FontSize="18" Name="btnTan" Click="BtnAll_Click" Tag="tan()" Margin="1.5,1.5,3,1.5" Background="#FFE9E9E9">
+                    <Button Grid.Column="2" Grid.Row="6" FontSize="18" Name="btnTan" Click="BtnAll_Click" Tag="tan()" Margin="1.5,1.5,1.5,1.5" Background="#FFE9E9E9">
                         <TextBlock>
                             <Run>tan</Run>
                             <Run BaselineAlignment="Subscript" FontSize="14">r</Run>
@@ -327,7 +338,7 @@
                             </Style>
                         </Button.Resources>
                     </Button>
-                    <Button Grid.Column="3" Grid.Row="6" FontSize="18" Name="btnSec" Click="BtnAll_Click" Tag="sec()" Margin="1.5,1.5,3,1.5" Background="#FFE9E9E9">
+                    <Button Grid.Column="3" Grid.Row="6" FontSize="18" Name="btnSec" Click="BtnAll_Click" Tag="sec()" Margin="1.5,1.5,1.5,1.5" Background="#FFE9E9E9">
                         <TextBlock>
                             <Run>sec</Run>
                             <Run BaselineAlignment="Subscript" FontSize="14">r</Run>
@@ -338,7 +349,7 @@
                             </Style>
                         </Button.Resources>
                     </Button>
-                    <Button Grid.Column="4" Grid.Row="6" FontSize="18" Name="btnCsc" Click="BtnAll_Click" Tag="csc()" Margin="1.5,1.5,3,1.5" Background="#FFE9E9E9">
+                    <Button Grid.Column="4" Grid.Row="6" FontSize="18" Name="btnCsc" Click="BtnAll_Click" Tag="csc()" Margin="1.5,1.5,1.5,1.5" Background="#FFE9E9E9">
                         <TextBlock>
                             <Run>csc</Run>
                             <Run BaselineAlignment="Subscript" FontSize="14">r</Run>

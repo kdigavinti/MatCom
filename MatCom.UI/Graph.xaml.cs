@@ -91,10 +91,10 @@ namespace MatCom.UI
             {
                 _zoomFactor = _zoomFactor * 2;
                 double labelStep = _steps * 5;
-                labelStep = Math.Truncate(labelStep * 1000) / 1000; ;
+                labelStep = Math.Truncate(labelStep * 1000) / 1000;
                 _steps = (labelStep >= 0 && labelStep.ToString().Contains("2")) ? _steps * 2.5 : _steps * 2;
                 if (_steps == 1) _stepsToCalculatePoints = 0.2;
-                _stepsToCalculatePoints = (_steps >= 1) ? _stepsToCalculatePoints * 10 : _stepsToCalculatePoints;
+                _stepsToCalculatePoints = (_steps >= 1 && _steps<=20) ? _stepsToCalculatePoints * 5 : _stepsToCalculatePoints;
                 PlotGraph();
             }
         }
@@ -286,12 +286,14 @@ namespace MatCom.UI
             {
                 List<double> xPoints = new List<double>();
                 decimal x = (decimal)_xOriginalMin;
+                //decimal x = (decimal)_xMin;
                 decimal transformX = 0;
-                if (_isTrigonometricFunction && _steps<=50)
+                if (_isTrigonometricFunction)
                 {
-                    _stepsToCalculatePoints = 0.05;
+                    _stepsToCalculatePoints = (_steps <= 5) ? 0.05 : 1;
                 }
                 while (x <= (decimal)_xOriginalMax)
+                //while (x <= (decimal)_xMax)
                 {
                     transformX = (decimal)_origin.X + (x * (decimal)_xAxisLinesGap / ((decimal)_steps));
                     if (0 <= transformX && transformX <= (decimal)_canvasWidth)
@@ -300,6 +302,7 @@ namespace MatCom.UI
                         _xMax = (x > (decimal)_xMax) ? (double)x : _xMax;
                         xPoints.Add((double)x);
                     }
+                    //xPoints.Add((double)x);
                     x = x + (decimal)_stepsToCalculatePoints;
                 }
                 if (_isTrigonometricFunction)
@@ -311,7 +314,12 @@ namespace MatCom.UI
                 Evaluator eval = new Evaluator();
                 if (expValues == null)
                 {
+                    //Stopwatch stopwatch = new Stopwatch();
+                    //stopwatch.Start();
                     await eval.Evaluate(xPoints, _expression);
+                    //eval.EvaluateNoAsync(xPoints, _expression);
+                    //stopwatch.Stop();
+                    //MessageBox.Show(stopwatch.ElapsedTicks.ToString());
                     graphPoints = eval.GraphPoints;
                     expValues = new ExpressionValues()
                     {
@@ -383,6 +391,25 @@ namespace MatCom.UI
                 _origin.X = (chartCanvas.ActualWidth / 2);
                 _origin.Y = (chartCanvas.ActualHeight / 2);
             }
+
+            double idx = -1;
+            double x = _origin.X;
+            while (x <= _canvasWidth)            
+            {
+                idx++;
+                x = x + _yAxisLinesGap;
+            }
+            _xOriginalMax = _steps * (idx + 1); // to calculate the Y values only within the X range visible on the canvas
+
+            idx = -1;
+            x = _origin.X;
+            while (x>=0)
+            {
+                idx++;
+                x = x - _yAxisLinesGap;
+            }
+            _xOriginalMin = -1*_steps * (idx + 1);
+
             //Stopwatch stopwatch = new Stopwatch();
             //stopwatch.Start();
             this.Dispatcher.BeginInvoke((Action)delegate
@@ -529,8 +556,9 @@ namespace MatCom.UI
 
             }
             AddAxisLabels(axisLabels);
-            _xOriginalMax = _steps * (idx+1) * 5; // to calculate the Y values only within the X range visible on the canvas
-            
+            //_xOriginalMax = _steps * (idx+1); // to calculate the Y values only within the X range visible on the canvas
+            //_xMax = _steps * (idx + 1); // to calculate the Y values only within the X range visible on the canvas
+
         }
 
         ////draw y-axis lines - left to the origin
@@ -569,7 +597,8 @@ namespace MatCom.UI
                 x = x - _yAxisLinesGap;
             }
             AddAxisLabels(axisLabels);
-            _xOriginalMin = -1 * _steps * (idx+1) * 5; // to calculate the Y values only within the X range visible on the canvas
+            //_xOriginalMin = -1 * _steps * (idx+1); // to calculate the Y values only within the X range visible on the canvas
+            //_xMin = -1 * _steps * (idx + 1); // to calculate the Y values only within the X range visible on the canvas
         }
         //remove all the points and labels for the zero crossing
         private void ClearZeroCrossingPoints()
@@ -933,17 +962,21 @@ namespace MatCom.UI
             List<System.Windows.Point> points = new List<System.Windows.Point>();
             foreach (var value in values)
             {
+                //_steps = 2;
                 double xPoint = _origin.X + (value.X * _xAxisLinesGap / (_steps));
                 double yPoint = _origin.Y - (value.Y * _yAxisLinesGap / (_steps));
-                if (_isTrigonometricFunction)
+
+                points.Add(new System.Windows.Point(xPoint, yPoint));
+
+                /*if (_isTrigonometricFunction)
                 {
                     points.Add(new System.Windows.Point(xPoint, yPoint));
                 }
                 else
                 {
-                    if (xPoint >= -_canvasWidth && xPoint <= _canvasWidth && yPoint >= -5 * _canvasHeight && yPoint <= 5 * _canvasHeight)
+                    //if (xPoint >= -1*_canvasWidth && xPoint <= _canvasWidth && yPoint >= -5 * _canvasHeight && yPoint <= 5 * _canvasHeight)
                         points.Add(new System.Windows.Point(xPoint, yPoint));
-                }
+                }*/
             }
             
             DrawBezierCurve(points, color);
@@ -971,11 +1004,11 @@ namespace MatCom.UI
 
             PathSegmentCollection pathSegmentCollection = new PathSegmentCollection();
 
-            PolyBezierSegment bezierSeg = new PolyBezierSegment();
+            /*PolyBezierSegment bezierSeg = new PolyBezierSegment();
             bezierSeg.Points = pointCollection;
-            pathSegmentCollection.Add(bezierSeg);
+            pathSegmentCollection.Add(bezierSeg);*/
 
-            /*for (int i = 0; i < points.Count - 2; i = i + 2)
+            for (int i = 0; i < points.Count - 2; i = i + 2)
             {
                 //System.Windows.Point p1 = points[i];
                 //System.Windows.Point p2 = points[i + 1];
@@ -992,7 +1025,7 @@ namespace MatCom.UI
                 pathSegmentCollection.Add(seg);
 
 
-            }*/
+            }
             pathFigure.Segments = pathSegmentCollection;
 
             PathFigureCollection pathFigureColl = new PathFigureCollection();

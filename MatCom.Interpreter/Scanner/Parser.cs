@@ -369,6 +369,8 @@ namespace MatCom.Interpreter.Scanner
                 Lexer lexer = new Lexer(expression);
                 List<Token> TokenList = lexer.Tokenize();
                 this.Tokens = TokenList;
+                _currentPosition = TokenList.Count-1;
+                _currToken = TokenList[_currentPosition];
             }
             else
             {

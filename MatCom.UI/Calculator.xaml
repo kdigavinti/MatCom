@@ -26,8 +26,8 @@
                     <ListView Name="lstVwTokens">
                         <ListView.View>
                             <GridView>
-                                <GridViewColumn Width="160" Header="Token" DisplayMemberBinding="{Binding value}"/>
-                                <GridViewColumn Width="160" Header="Type" DisplayMemberBinding="{Binding type}"/>
+                                <GridViewColumn Width="160" Header="Token" DisplayMemberBinding="{Binding Value}"/>
+                                <GridViewColumn Width="160" Header="Type" DisplayMemberBinding="{Binding Type}"/>
                             </GridView>
                         </ListView.View>
                     </ListView>

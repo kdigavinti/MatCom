@@ -119,6 +119,12 @@ namespace MatCom.UI
                 SetRichTextBoxInput(expression);
                 //_parser = new Parser();
                 string result = _parser.Parse(expression);
+                if (result.ToUpper() == "NAN")
+                {
+                    ShowError("Invalid Input");
+                    return;
+                }
+                    
                 GetVariables(expression, result);
                 GetTokens();
                 SetRichTextBoxInput("\r>> " + result);
@@ -126,8 +132,8 @@ namespace MatCom.UI
             }
             catch (Exception ex)
             {
-
-                TextRange rangeOfText1 = new TextRange(rtbOutputWindow.Document.ContentEnd, rtbOutputWindow.Document.ContentEnd);
+                ShowError(ex.Message);
+                /*TextRange rangeOfText1 = new TextRange(rtbOutputWindow.Document.ContentEnd, rtbOutputWindow.Document.ContentEnd);
                 rangeOfText1.Text = "\r>> " + ex.Message;
                 rangeOfText1.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Red);
                 //rangeOfText1.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Bold);
@@ -135,10 +141,21 @@ namespace MatCom.UI
                 TextRange rangeOfText2 = new TextRange(rtbOutputWindow.Document.ContentEnd, rtbOutputWindow.Document.ContentEnd);
                 rangeOfText2.Text = "\nMatCom > ";
                 rangeOfText2.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.White);
-                //rangeOfText2.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Normal);
+                //rangeOfText2.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Normal);*/
             }
         }    
+        private void ShowError(string message)
+        {
+            TextRange rangeOfText1 = new TextRange(rtbOutputWindow.Document.ContentEnd, rtbOutputWindow.Document.ContentEnd);
+            rangeOfText1.Text = "\r>> " + message;
+            rangeOfText1.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Red);
+            //rangeOfText1.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Bold);
 
+            TextRange rangeOfText2 = new TextRange(rtbOutputWindow.Document.ContentEnd, rtbOutputWindow.Document.ContentEnd);
+            rangeOfText2.Text = "\nMatCom > ";
+            rangeOfText2.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.White);
+            //rangeOfText2.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Normal);
+        }
         private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             TabControl tab = (TabControl)sender;

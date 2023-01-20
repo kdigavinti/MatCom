@@ -16,7 +16,7 @@ namespace MatCom.Interpreter.Scanner
         /// </summary>
         /// <param name="identifier"></param>
         /// <param name="value"></param>
-        public void assign(string identifier, object value)
+        public void Assign(string identifier, object value)
         {            
             if (Values.ContainsKey(identifier))
             {
@@ -33,12 +33,12 @@ namespace MatCom.Interpreter.Scanner
         /// </summary>
         /// <param name="identifier"></param>
         /// <returns></returns>
-        public Object? getValue(string identifier)
+        public Object? GetValue(string identifier)
         {
             if (Values.ContainsKey(identifier))
             {
                 if(ValuesByRef.ContainsKey(identifier))
-                    return getValueByRef(identifier);
+                    return GetValueByRef(identifier);
             }
             return null;
         }
@@ -48,7 +48,7 @@ namespace MatCom.Interpreter.Scanner
         /// </summary>
         /// <param name="left"></param>
         /// <param name="right"></param>
-        public void assignValueByRef(string left, string right)
+        public void AssignValueByRef(string left, string right)
         {
             if(ValuesByRef.ContainsKey(left))
             {
@@ -65,7 +65,7 @@ namespace MatCom.Interpreter.Scanner
         /// </summary>
         /// <param name="identifier"></param>
         /// <returns></returns>
-        public Object? getValueByRef(string identifier)
+        public Object? GetValueByRef(string identifier)
         {
             if (ValuesByRef.ContainsKey(identifier))
             {

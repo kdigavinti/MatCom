@@ -10,7 +10,7 @@ namespace MatCom.Interpreter.Scanner
 {
     public class Evaluator
     {
-        Queue<Token> tokens = new Queue<Token>();
+        Queue<Token> Tokens = new Queue<Token>();
         ConcurrentDictionary<double, double> Points = new ConcurrentDictionary<double, double>();
         public List<GraphPoint> GraphPoints = new List<GraphPoint>();
 
@@ -21,7 +21,7 @@ namespace MatCom.Interpreter.Scanner
 
         public Evaluator(Queue<Token> tokens)
         {
-            this.tokens = tokens;
+            this.Tokens = tokens;
         }
 
         //added by Kiran

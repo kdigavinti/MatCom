@@ -32,21 +32,21 @@ namespace MatCom.Interpreter.Scanner
     /// </summary>
     public class Token
     {
-        public TokenType type { get; set; } //TYPE OF THE TOKEN
-        public string value { get; set; } //ACTUAL VALUE OF THE TOKEN
-        public int position { get; set; } //POSIITON OF THE TOKEN WITHIN THE STRING
+        public TokenType Type { get; set; } //TYPE OF THE TOKEN
+        public string Value { get; set; } //ACTUAL VALUE OF THE TOKEN
+        public int Position { get; set; } //POSIITON OF THE TOKEN WITHIN THE STRING
 
         public Token(TokenType type, string value, int position)
         {
             
-            this.type = type;
-            this.value = value;
-            this.position = position;
+            this.Type = type;
+            this.Value = value;
+            this.Position = position;
         }
 
         public override string ToString()
         {
-            return this.value;
+            return this.Value;
         }
     }
 }

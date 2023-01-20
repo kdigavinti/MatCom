@@ -181,7 +181,7 @@ namespace MatCom.UI
             {
                 foreach (Token token in tokens)
                 {
-                    if (token.type != TokenType.EOF)
+                    if (token.Type != TokenType.EOF)
                         lstVwTokens.Items.Add(token);
                 }
             }            

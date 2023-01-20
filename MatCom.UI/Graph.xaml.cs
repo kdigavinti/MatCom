@@ -287,10 +287,6 @@ namespace MatCom.UI
         {
             try
             {
-                if(_stepsForZoomFactor == 1)
-                {
-                    _expressionValues = new List<ExpressionValues>();
-                }
                 List<double> xPoints = new List<double>();
                 decimal x = (decimal)_xOriginalMin;
                 //decimal x = (decimal)_xMin;

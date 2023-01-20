@@ -216,6 +216,8 @@ namespace MatCom.Interpreter.Scanner
             {
                 _operator = _currToken.Value;
                 NextToken();
+                if (_currToken.Type == TokenType.Operator)
+                    throw new Exception($"Invalid Operator {_currToken.Value} at position {_currToken.Position}");
                 AST? rightNode = Power();
                 term = new ASTBinaryOp(term, rightNode, _operator);
             }
@@ -234,6 +236,8 @@ namespace MatCom.Interpreter.Scanner
             {
                 _operator = _currToken.Value;
                 NextToken();
+                if (_currToken.Type == TokenType.Operator)
+                    throw new Exception($"Invalid Operator {_currToken.Value} at position {_currToken.Position}");
                 AST? rightNode = Factor();
                 power = new ASTBinaryOp(power, rightNode, _operator);
             }

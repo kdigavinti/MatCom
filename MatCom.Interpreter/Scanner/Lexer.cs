@@ -79,7 +79,7 @@ namespace MatCom.Interpreter.Scanner
                     }
                     else if ((match = CheckToken(@"^\)")).Length > 0) //CHECK Right Parantheses
                     {
-                        TokenList.Add(new Token(TokenType.Functions, match, _currentPosition));
+                        TokenList.Add(new Token(TokenType.RightParantheses, match, _currentPosition));
                     }
                     else
                     {
@@ -88,6 +88,7 @@ namespace MatCom.Interpreter.Scanner
                 }
             }
             TokenList.Add(new Token(TokenType.EOF, "", _currentPosition));
+            
             return TokenList;
         }
 

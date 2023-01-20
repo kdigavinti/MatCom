@@ -38,6 +38,7 @@ namespace MatCom.Interpreter.Scanner
                 {"log", "Log" },
                 {"ln", "ln" },
                 {"sqrt", "Sqrt" },
+                {"cbrt", "Cbrt" },
                 {"√", "Sqrt" },
                 {"sin", "Sin"},
                 {"cos", "Cos" },

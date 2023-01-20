@@ -21,15 +21,13 @@ namespace MatCom.Interpreter.Scanner
         {            
             List<Token> TokenList = new List<Token>();
             
-            //char prevChar = char.MinValue;
             string match = string.Empty;
             while (_currentPosition < _textLength)
             {
-                //prevChar = _text[_currentPosition - 1];
                 match = string.Empty;
                 bool unary = false;
                 //CHECK UNARY
-                if (_currentPosition == 0 || (_currentPosition > 0 && _text[_currentPosition-1] is ' ' or '(' or '*' or '/' or '+' or '-'))
+                if (_currentPosition == 0 || (_currentPosition > 0 && _text[_currentPosition-1] is ' ' or '(' or '*' or '/' or '+' or '-' or '^' or '=' or '|'))
                 {
                     if ((match = CheckToken(@"^[-+?](\d*\.{0,1}\d+)")).Length > 0)
                     {
@@ -47,7 +45,7 @@ namespace MatCom.Interpreter.Scanner
                     {
                         TokenList.Add(new Token(TokenType.Number, match, _currentPosition));
                     }
-                    else if((match = CheckToken(@"^(&&|==|\|\||<=|>=|!=)")).Length > 0)
+                    else if((match = CheckToken(@"^(&&|==|\|\||<=|>=|!=)")).Length > 0) //Check Boolean Operators
                     {
                         TokenList.Add(new Token(TokenType.Operator, match, _currentPosition));
                     }
@@ -55,7 +53,7 @@ namespace MatCom.Interpreter.Scanner
                     {
                         TokenList.Add(new Token(TokenType.Operator, match, _currentPosition));
                     }
-                    else if ((match = CheckToken(@"^(sqrt|log|ln|exp|abs|sin|cos|tan|sec|csc|cot|diff)")).Length > 0) //CHECK Functions
+                    else if ((match = CheckToken(@"^(sqrt|log|ln|exp|abs|sin|cos|tan|sec|csc|cot|diffvalue|diff)")).Length > 0) //CHECK Functions
                     {
                         TokenList.Add(new Token(TokenType.Functions, match, _currentPosition));
                     }
@@ -96,9 +94,7 @@ namespace MatCom.Interpreter.Scanner
         /// <summary>
         /// CHECK THE TOKENS FOR THE MATCHING TOKEN TYPES.
         /// </summary>
-        /// <param name="expression"></param>
         /// <param name="regExp"></param>
-        /// <param name="tokenType"></param>
         /// <returns></returns>
         string CheckToken(string regExp)
         {

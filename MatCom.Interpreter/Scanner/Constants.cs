@@ -45,7 +45,8 @@ namespace MatCom.Interpreter.Scanner
                 {"csc", "Csc" },
                 {"sec", "Sec" },
                 {"cot", "Cot" },
-                {"diff","Diff" }
+                {"diff","Diff" },
+                {"diffvalue", "DiffValue" }
             };
 
         public static Dictionary<string, string> Keywords =
@@ -91,6 +92,7 @@ namespace MatCom.Interpreter.Scanner
                     case "sec": result = 1 / Math.Cos(_value); break;
                     case "cot": result = 1 / Math.Tan(_value); break;
                     case "diff": result = _value; break;
+                    case "diffvalue": result = _value; break;
                     default: break;
                 }
             }

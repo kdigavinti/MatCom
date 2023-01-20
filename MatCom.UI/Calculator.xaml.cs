@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -89,6 +90,7 @@ namespace MatCom.UI
             txtInput.Focus();
             _parser = new Parser();
             lstVwVariables.Items.Clear();
+            lstVwTokens.Items.Clear();
         }
         private void BtnClear_Click(object sender, RoutedEventArgs e)
         {
@@ -117,23 +119,8 @@ namespace MatCom.UI
                 SetRichTextBoxInput(expression);
                 //_parser = new Parser();
                 string result = _parser.Parse(expression);
-                Dictionary<string, string> valuesByRef = _parser.EnvVariables.ValuesByRef;
-                Dictionary<string, object> values = _parser.EnvVariables.Values;
-                foreach (string key in valuesByRef.Keys)
-                {
-                    var item = new { Variable = key, ActualValue = values[key], Dependency = valuesByRef[key] };
-                    if(!lstVwVariables.Items.Contains(item))
-                        lstVwVariables.Items.Add(item);
-                    
-                }
-                expression = expression.Replace(" ", "");
-                if (valuesByRef.ContainsKey(expression))
-                {
-                    var item = new { Variable = expression, ActualValue = result, Dependency = valuesByRef[expression] };
-                    if (!lstVwVariables.Items.Contains(item))
-                        lstVwVariables.Items.Add(item);
-                }
-                
+                GetVariables(expression, result);
+                GetTokens();
                 SetRichTextBoxInput("\r>> " + result);
                 SetRichTextBoxInput("\nMatCom > ");
             }
@@ -150,16 +137,54 @@ namespace MatCom.UI
                 rangeOfText2.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.White);
                 //rangeOfText2.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Normal);
             }
+        }    
+
+        private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            TabControl tab = (TabControl)sender;
+            TabItem tabItem = (TabItem) tab.SelectedItem;
+            if (tabItem == null) return;
+            string header = tabItem.Header.ToString().ToUpper();
+            if(header == "TOKENS")
+            {
+                GetTokens();
+            }           
+            
         }
-        private void TabTokens_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+
+        private void GetVariables(string expression, string result)
+        {
+            Dictionary<string, string> valuesByRef = _parser.EnvVariables.ValuesByRef;
+            Dictionary<string, object> values = _parser.EnvVariables.Values;
+            foreach (string key in valuesByRef.Keys)
+            {
+                var item = new { Variable = key, ActualValue = values[key], Dependency = valuesByRef[key] };
+                if (!lstVwVariables.Items.Contains(item))
+                    lstVwVariables.Items.Add(item);
+
+            }
+            expression = expression.Replace(" ", "");
+            if (valuesByRef.ContainsKey(expression))
+            {
+                var item = new { Variable = expression, ActualValue = result, Dependency = valuesByRef[expression] };
+                if (!lstVwVariables.Items.Contains(item))
+                    lstVwVariables.Items.Add(item);
+            }
+        }
+
+        private void GetTokens()
         {
             lstVwTokens.Items.Clear();
             List<Token> tokens = new List<Token>();
             tokens = _parser.Tokens;
-            foreach (Token token in tokens)
+            if (tokens != null)
             {
-                lstVwTokens.Items.Add(token);
-            }
+                foreach (Token token in tokens)
+                {
+                    if (token.type != TokenType.EOF)
+                        lstVwTokens.Items.Add(token);
+                }
+            }            
         }
     }
 }

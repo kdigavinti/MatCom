@@ -10,7 +10,7 @@
 
     <Grid>
         <DockPanel Name="dockRight">
-            <TabControl DockPanel.Dock="Right" Width="350">
+            <TabControl DockPanel.Dock="Right" Width="350" SelectionChanged="TabControl_SelectionChanged">
                 <TabItem Header="Variables" Name="tabVariables">
                     <ListView Name="lstVwVariables">
                         <ListView.View>
@@ -22,8 +22,15 @@
                         </ListView.View>
                     </ListView>
                 </TabItem>
-                <TabItem Header="Tokens" Name="tabTokens" MouseLeftButtonDown="TabTokens_MouseLeftButtonDown">
-                    <ListView Name="lstVwTokens"></ListView>
+                <TabItem Header="Tokens" Name="tabTokens">
+                    <ListView Name="lstVwTokens">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Width="160" Header="Token" DisplayMemberBinding="{Binding value}"/>
+                                <GridViewColumn Width="160" Header="Type" DisplayMemberBinding="{Binding type}"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
                 </TabItem>
                     
                 <!--<TabItem Header="Semantics" />-->
@@ -168,7 +175,7 @@
                             </Style>
                         </Button.Resources>
                     </Button>
-                    <Button Grid.Column="0" Grid.Row="3" FontSize="18" Name="btnLog" Click="BtnAll_Click" Tag="log" Margin="3,1.5,1.5,1.5" Background="#FFE9E9E9">log
+                    <Button Grid.Column="0" Grid.Row="3" FontSize="18" Name="btnLog" Click="BtnAll_Click" Tag="log()" Margin="3,1.5,1.5,1.5" Background="#FFE9E9E9">log
                         <Button.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="5"/>

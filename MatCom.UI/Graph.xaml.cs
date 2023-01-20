@@ -33,8 +33,7 @@ namespace MatCom.UI
         double _xAxisLinesGap = 20, _yAxisLinesGap = 20;
         double _xOriginalMin = -50, _xOriginalMax = 50;
         double _xMin = 0, _xMax = 0;
-        double _zoomFactor = 1;
-        double _steps = 1;
+        double _stepsForZoomFactor = 1;
         double _stepsToCalculatePoints = 0.1;
         
         System.Windows.Point _origin;
@@ -72,13 +71,14 @@ namespace MatCom.UI
         private void OnZoomInClick()
         {
             //steps are 1, 0.5, 0.2, 0.1,...
-            double newStep = ((_steps * 5).ToString().Contains("5")) ? _steps * 0.4 : _steps * 0.5;
+            double newStep = ((_stepsForZoomFactor * 5).ToString().Contains("5")) ? 
+                _stepsForZoomFactor * 0.4 : _stepsForZoomFactor * 0.5;
             if (newStep >= 0.001)
             {
-                _zoomFactor = _zoomFactor * 0.5;
-                _steps = newStep;
-                if (_steps == 1) _stepsToCalculatePoints = 0.2;
-                _stepsToCalculatePoints = (_stepsToCalculatePoints >= 0.01) ? _stepsToCalculatePoints * 0.5 : _stepsToCalculatePoints;
+                _stepsForZoomFactor = newStep;
+                if (_stepsForZoomFactor == 1) _stepsToCalculatePoints = 0.2;
+                _stepsToCalculatePoints = (_stepsToCalculatePoints >= 0.01) ? 
+                    _stepsToCalculatePoints * 0.5 : _stepsToCalculatePoints;
                 PlotGraph();
             }
         }
@@ -86,15 +86,17 @@ namespace MatCom.UI
         private void OnZoomOutClick()
         {
             //steps are 1, 2, 5, 10, 20, 50, 100,...
-            double newStep = ((_steps * 5).ToString().Contains("2")) ? _steps * 2.5 : _steps * 2;
+            double newStep = ((_stepsForZoomFactor * 5).ToString().Contains("2")) ? 
+                _stepsForZoomFactor * 2.5 : _stepsForZoomFactor * 2;
             if (newStep <= 10000)
-            {
-                _zoomFactor = _zoomFactor * 2;
-                double labelStep = _steps * 5;
+            {                
+                double labelStep = _stepsForZoomFactor * 5;
                 labelStep = Math.Truncate(labelStep * 1000) / 1000;
-                _steps = (labelStep >= 0 && labelStep.ToString().Contains("2")) ? _steps * 2.5 : _steps * 2;
-                if (_steps == 1) _stepsToCalculatePoints = 0.2;
-                _stepsToCalculatePoints = (_steps >= 1 && _steps<=20) ? _stepsToCalculatePoints * 5 : _stepsToCalculatePoints;
+                _stepsForZoomFactor = (labelStep >= 0 && labelStep.ToString().Contains("2")) ? 
+                    _stepsForZoomFactor * 2.5 : _stepsForZoomFactor * 2;
+                if (_stepsForZoomFactor == 1) _stepsToCalculatePoints = 0.2;
+                _stepsToCalculatePoints = (_stepsForZoomFactor >= 1 && _stepsForZoomFactor<=20) ? 
+                    _stepsToCalculatePoints * 5 : _stepsToCalculatePoints;
                 PlotGraph();
             }
         }
@@ -121,9 +123,8 @@ namespace MatCom.UI
             _canvasWidth = 0.0; _canvasHeight = 0.0;
             _xAxisLinesGap = 20; _yAxisLinesGap = 20;
             _xOriginalMin = -50; _xOriginalMax = 50;
-            _xMin = 0; _xMax = 0;
-            _zoomFactor = 1;
-            _steps = 1;
+            _xMin = 0; _xMax = 0;            
+            _stepsForZoomFactor = 1;
             _stepsToCalculatePoints = 0.1;
             _fitToScreen = true;
             _expressionValues = new List<ExpressionValues>();
@@ -183,6 +184,8 @@ namespace MatCom.UI
 
                 System.Windows.Point newOrigin = new System.Windows.Point(_origin.X, _origin.Y);
 
+                //multipled by 0.05 to control the movement of the curve on the canvas.
+                //otherwise, the mouse movement is much faster
                 newOrigin.X = _origin.X + (_last.X - _start.X) * 0.05;
                 newOrigin.Y = _origin.Y + (_last.Y - _start.Y) * 0.05;
 
@@ -290,12 +293,12 @@ namespace MatCom.UI
                 decimal transformX = 0;
                 if (_isTrigonometricFunction)
                 {
-                    _stepsToCalculatePoints = (_steps <= 5) ? 0.05 : 1;
+                    _stepsToCalculatePoints = (_stepsForZoomFactor <= 5) ? 0.05 : 1;
                 }
                 while (x <= (decimal)_xOriginalMax)
                 //while (x <= (decimal)_xMax)
                 {
-                    transformX = (decimal)_origin.X + (x * (decimal)_xAxisLinesGap / ((decimal)_steps));
+                    transformX = (decimal)_origin.X + (x * (decimal)_xAxisLinesGap / ((decimal)_stepsForZoomFactor));
                     if (0 <= transformX && transformX <= (decimal)_canvasWidth)
                     {
                         _xMin = (x < (decimal)_xMin) ? (double)x : _xMin;
@@ -399,7 +402,7 @@ namespace MatCom.UI
                 idx++;
                 x = x + _yAxisLinesGap;
             }
-            _xOriginalMax = _steps * (idx + 1); // to calculate the Y values only within the X range visible on the canvas
+            _xOriginalMax = _stepsForZoomFactor * (idx + 1); // to calculate the Y values only within the X range visible on the canvas
 
             idx = -1;
             x = _origin.X;
@@ -408,7 +411,7 @@ namespace MatCom.UI
                 idx++;
                 x = x - _yAxisLinesGap;
             }
-            _xOriginalMin = -1*_steps * (idx + 1);
+            _xOriginalMin = -1*_stepsForZoomFactor * (idx + 1);
 
             //Stopwatch stopwatch = new Stopwatch();
             //stopwatch.Start();
@@ -467,8 +470,8 @@ namespace MatCom.UI
                     chartCanvas.Children.Add(xAxisLine);                    
                     if (idx != 0 && idx % 5 == 0)
                     {
-                        axisLabels.Add(new AxisLabel(_origin.X, y, FormatLabel(_steps * idx), AxisType.YAxis));
-                        axisLabels.Add(new AxisLabel(xAxisLine.X1, y, FormatLabel(_steps * idx), AxisType.YAxis));
+                        axisLabels.Add(new AxisLabel(_origin.X, y, FormatLabel(_stepsForZoomFactor * idx), AxisType.YAxis));
+                        axisLabels.Add(new AxisLabel(xAxisLine.X1, y, FormatLabel(_stepsForZoomFactor * idx), AxisType.YAxis));
                     }
 
                 }
@@ -508,8 +511,8 @@ namespace MatCom.UI
                     
                     if (idx != 0 && idx % 5 == 0)
                     {
-                        axisLabels.Add(new AxisLabel(_origin.X, y, "-" + FormatLabel(_steps * idx), AxisType.YAxis));
-                        axisLabels.Add(new AxisLabel(xAxisLine.X1, y, "-" + FormatLabel(_steps * idx), AxisType.YAxis));
+                        axisLabels.Add(new AxisLabel(_origin.X, y, "-" + FormatLabel(_stepsForZoomFactor * idx), AxisType.YAxis));
+                        axisLabels.Add(new AxisLabel(xAxisLine.X1, y, "-" + FormatLabel(_stepsForZoomFactor * idx), AxisType.YAxis));
                     }
                 }
                 y += _xAxisLinesGap;
@@ -547,8 +550,8 @@ namespace MatCom.UI
                     
                     if (idx != 0 && idx % 5 == 0)
                     {
-                        axisLabels.Add(new AxisLabel(x, _origin.Y, FormatLabel(_steps * idx), AxisType.XAxis));
-                        axisLabels.Add(new AxisLabel(x, yAxisLine.Y1, FormatLabel(_steps * idx), AxisType.XAxis));
+                        axisLabels.Add(new AxisLabel(x, _origin.Y, FormatLabel(_stepsForZoomFactor * idx), AxisType.XAxis));
+                        axisLabels.Add(new AxisLabel(x, yAxisLine.Y1, FormatLabel(_stepsForZoomFactor * idx), AxisType.XAxis));
                     }                    
                 }
 
@@ -556,8 +559,8 @@ namespace MatCom.UI
 
             }
             AddAxisLabels(axisLabels);
-            //_xOriginalMax = _steps * (idx+1); // to calculate the Y values only within the X range visible on the canvas
-            //_xMax = _steps * (idx + 1); // to calculate the Y values only within the X range visible on the canvas
+            //_xOriginalMax = _stepsForZoomFactor * (idx+1); // to calculate the Y values only within the X range visible on the canvas
+            //_xMax = _stepsForZoomFactor * (idx + 1); // to calculate the Y values only within the X range visible on the canvas
 
         }
 
@@ -590,15 +593,15 @@ namespace MatCom.UI
                     chartCanvas.Children.Add(yAxisLine);                   
                     if (idx != 0 && idx % 5 == 0)
                     {
-                        axisLabels.Add(new AxisLabel(x, _origin.Y, FormatLabel(_steps * negIdx), AxisType.XAxis));
-                        axisLabels.Add(new AxisLabel(x, yAxisLine.Y1, FormatLabel(_steps * negIdx), AxisType.XAxis));
+                        axisLabels.Add(new AxisLabel(x, _origin.Y, FormatLabel(_stepsForZoomFactor * negIdx), AxisType.XAxis));
+                        axisLabels.Add(new AxisLabel(x, yAxisLine.Y1, FormatLabel(_stepsForZoomFactor * negIdx), AxisType.XAxis));
                     }
                 }
                 x = x - _yAxisLinesGap;
             }
             AddAxisLabels(axisLabels);
-            //_xOriginalMin = -1 * _steps * (idx+1); // to calculate the Y values only within the X range visible on the canvas
-            //_xMin = -1 * _steps * (idx + 1); // to calculate the Y values only within the X range visible on the canvas
+            //_xOriginalMin = -1 * _stepsForZoomFactor * (idx+1); // to calculate the Y values only within the X range visible on the canvas
+            //_xMin = -1 * _stepsForZoomFactor * (idx + 1); // to calculate the Y values only within the X range visible on the canvas
         }
         //remove all the points and labels for the zero crossing
         private void ClearZeroCrossingPoints()
@@ -665,8 +668,8 @@ namespace MatCom.UI
             for(int i=0; i < points.Count; i++)
             {
                 double xPoint = points[i].X, yPoint = points[i].Y;
-                double xCanvasPoint = _origin.X + (xPoint * _xAxisLinesGap / (_steps));
-                double yCanvasPoint = _origin.Y - (yPoint * _yAxisLinesGap / (_steps));
+                double xCanvasPoint = _origin.X + (xPoint * _xAxisLinesGap / (_stepsForZoomFactor));
+                double yCanvasPoint = _origin.Y - (yPoint * _yAxisLinesGap / (_stepsForZoomFactor));
                 Ellipse ellipse = new Ellipse();
                 ellipse.Height = pointDia;
                 ellipse.Width = pointDia;
@@ -681,7 +684,7 @@ namespace MatCom.UI
 
                 TextBlock textBlock = new TextBlock();
                 textBlock.Name = "zeroCrossingPointLabel" + i;
-                string precision = (_steps <= 0.5) ? "N6" : "N3";
+                string precision = (_stepsForZoomFactor <= 0.5) ? "N6" : "N3";
                 //textBlock.Text = "(x: " + xPoint.ToString(precision) + " , y: " + yPoint.ToString(precision) + ")";
                 textBlock.Text = "(x: " + xPoint.ToString(precision) + ")";
                 textBlock.FontSize = 14.0;
@@ -804,14 +807,14 @@ namespace MatCom.UI
                 {
                     if(geo.StrokeContains(_pen, p))
                     {
-                        double xPoint = (p.X - _origin.X) * _steps / _xAxisLinesGap;
-                        //double yPoint = (_origin.Y - p.Y) * _steps / _yAxisLinesGap;
+                        double xPoint = (p.X - _origin.X) * _stepsForZoomFactor / _xAxisLinesGap;
+                        //double yPoint = (_origin.Y - p.Y) * _stepsForZoomFactor / _yAxisLinesGap;
                         //using parse function to get the precise Y value for the given X value
                         Evaluator evaluator = new Evaluator();
                         double yPoint = evaluator.ParseExpressionForSingleValue(_expression, xPoint);
                         TextBlock textBlock = new TextBlock();
                         textBlock.Name = "mouseposition";
-                        string precision = (_steps <= 0.5) ? "N6" : "N3";
+                        string precision = (_stepsForZoomFactor <= 0.5) ? "N6" : "N3";
                         textBlock.Text = "(x: " + xPoint.ToString(precision) + " , y: " + yPoint.ToString(precision) + ")";
                         textBlock.FontSize = 14.0;
                         textBlock.Background = new SolidColorBrush(Colors.White);
@@ -962,9 +965,9 @@ namespace MatCom.UI
             List<System.Windows.Point> points = new List<System.Windows.Point>();
             foreach (var value in values)
             {
-                //_steps = 2;
-                double xPoint = _origin.X + (value.X * _xAxisLinesGap / (_steps));
-                double yPoint = _origin.Y - (value.Y * _yAxisLinesGap / (_steps));
+                //_stepsForZoomFactor = 2;
+                double xPoint = _origin.X + (value.X * _xAxisLinesGap / (_stepsForZoomFactor));
+                double yPoint = _origin.Y - (value.Y * _yAxisLinesGap / (_stepsForZoomFactor));
 
                 points.Add(new System.Windows.Point(xPoint, yPoint));
 

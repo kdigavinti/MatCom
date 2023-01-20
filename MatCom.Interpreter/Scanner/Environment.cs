@@ -11,6 +11,11 @@ namespace MatCom.Interpreter.Scanner
         public Dictionary<string, Object> Values = new Dictionary<string, object>();
         public Dictionary<string, string> ValuesByRef = new Dictionary<string, string>();  
 
+        /// <summary>
+        /// Stores the current value of the identifer
+        /// </summary>
+        /// <param name="identifier"></param>
+        /// <param name="value"></param>
         public void assign(string identifier, object value)
         {            
             if (Values.ContainsKey(identifier))
@@ -23,6 +28,11 @@ namespace MatCom.Interpreter.Scanner
             }
         }
 
+        /// <summary>
+        /// Gets the current value of the identifer
+        /// </summary>
+        /// <param name="identifier"></param>
+        /// <returns></returns>
         public Object? getValue(string identifier)
         {
             if (Values.ContainsKey(identifier))
@@ -33,6 +43,11 @@ namespace MatCom.Interpreter.Scanner
             return null;
         }
 
+        /// <summary>
+        /// Assigns the raw value of the identifier before computing.
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
         public void assignValueByRef(string left, string right)
         {
             if(ValuesByRef.ContainsKey(left))
@@ -45,6 +60,11 @@ namespace MatCom.Interpreter.Scanner
             }
         }
 
+        /// <summary>
+        /// Gets the computed value of the identifier
+        /// </summary>
+        /// <param name="identifier"></param>
+        /// <returns></returns>
         public Object? getValueByRef(string identifier)
         {
             if (ValuesByRef.ContainsKey(identifier))

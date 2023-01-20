@@ -27,11 +27,14 @@ namespace MatCom.Interpreter.Scanner
         EOF
     }
   
+    /// <summary>
+    /// CLASS THAT MAINTAINS THE TOKENS.
+    /// </summary>
     public class Token
     {
-        public TokenType type { get; set; }
-        public string value { get; set; }
-        public int position { get; set; }
+        public TokenType type { get; set; } //TYPE OF THE TOKEN
+        public string value { get; set; } //ACTUAL VALUE OF THE TOKEN
+        public int position { get; set; } //POSIITON OF THE TOKEN WITHIN THE STRING
 
         public Token(TokenType type, string value, int position)
         {

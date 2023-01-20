@@ -11,6 +11,9 @@ namespace MatCom.Interpreter.Scanner
         public abstract object Eval();
     }
 
+    /// <summary>
+    /// CLASS TO MAINTAIN LEAF NODES FOR NUMBERS
+    /// </summary>
     public class ASTNumericLeaf: AST
     {
         public readonly double _value;
@@ -31,6 +34,9 @@ namespace MatCom.Interpreter.Scanner
         }
     }
 
+    /// <summary>
+    /// CLASS TO MAINTAIN LEAF NODE FOR STRINGS
+    /// </summary>
     public class ASTStringLeaf : AST
     {
         public readonly string _value;
@@ -51,13 +57,9 @@ namespace MatCom.Interpreter.Scanner
         }
     }
 
-    //public class ASTAssignOp: AST
-    //{
-    //    readonly AST _leftNode;
-    //    readonly AST _rightNode;    
-        
-    //}
-
+    /// <summary>
+    /// CLASS TO MAINTAIN LEAF NODES FOR BINARY OPERATORS
+    /// </summary>
     public class ASTBinaryOp : AST
     {
         public readonly AST _leftNode;

@@ -34,10 +34,6 @@ namespace MatCom.Interpreter.Scanner
         public string Parse(string text)
         {
             _expression = text;
-          /*(  if (text.StartsWith("diff("))
-            {
-                _expression = Differentiate(_expression);
-            }*/
             Lexer lexer = new Lexer(_expression);
             _currentPosition = 0;
             Tokens = lexer.Tokenize();
@@ -45,13 +41,18 @@ namespace MatCom.Interpreter.Scanner
             //{
             //    System.Diagnostics.Debug.WriteLine("{0, -25} {1, -18}", token.type, token.value);
             //}
-            GetToken();
+            NextToken();
             AST? statement = Statement();
             ExpectToken(TokenType.EOF);
             return statement.Eval().ToString();
             
         }
 
+        /// <summary>
+        /// VALIDATE THE EXPRESSION BEFORE PARSING IT. MAINLY USED DURING GRAPH POINTS.
+        /// </summary>
+        /// <param name="expression"></param>
+        /// <returns></returns>
         bool Validate(string expression)
         {
             expression = expression.Replace("x", "1", StringComparison.OrdinalIgnoreCase);
@@ -62,7 +63,10 @@ namespace MatCom.Interpreter.Scanner
             return false;
         }
 
-        void GetToken()
+        /// <summary>
+        /// GETS THE CURRENT TOKEN IN THE LIST.
+        /// </summary>
+        void NextToken()
         {
             if(this._currentPosition < this.Tokens.Count)
             {
@@ -71,7 +75,11 @@ namespace MatCom.Interpreter.Scanner
             }
         }
 
-        Token NextToken()
+        /// <summary>
+        /// GETS THE NEXT TOKEN IN THE LIST.
+        /// </summary>
+        /// <returns></returns>
+        Token AdvanceToken()
         {
             if(this._currentPosition + 1 < this.Tokens.Count)
             {
@@ -81,16 +89,27 @@ namespace MatCom.Interpreter.Scanner
             return null;
         }
 
+        /// <summary>
+        /// ACCEPT A TOKEN IF IT MATCHES THE TOKEN TYPE
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         bool AcceptToken(TokenType type)
         {
             if(_currToken.type == type)
             {
-                GetToken();
+                NextToken();
                 return true;
             }
             return false;
         }
 
+        /// <summary>
+        /// USED TO HANDLE ERRORS. IF A PARTICULAR TOKEN IS NOT FOUND AT THE GIVEN POSITION THIS THROWS AN EXCEPTION.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         bool ExpectToken(TokenType type)
         {
             if (AcceptToken(type))
@@ -98,10 +117,14 @@ namespace MatCom.Interpreter.Scanner
             throw new Exception($"Unexpected Token {_currToken} at position {_currentPosition}");
         }
 
+        /// <summary>
+        /// USED FOR ASSIGNMENT OPERATOR.
+        /// </summary>
+        /// <returns></returns>
         AST? Statement()
         {
             AST? expression;
-            if (this._currToken.type == TokenType.Identifier && Tokens[_currentPosition].value == "=")
+            if (this._currToken.type == TokenType.Identifier && Tokens[_currentPosition].value == "=") ///THIS LOGIC IS USED TO STORE THE VALUE BY REFERENCES.
             {
                 //Assign the environment values. 
                 string[] split = _expression.Split("=");
@@ -113,7 +136,7 @@ namespace MatCom.Interpreter.Scanner
                 }
                return Assignment();
             }
-            else 
+            else  //CHECK IF THE ASSIGNMENT IS AN EXPRESSION.
             { 
                 expression = BooleanExpression();
                 return expression;
@@ -121,13 +144,17 @@ namespace MatCom.Interpreter.Scanner
             return null;
         }
 
+        /// <summary>
+        /// ASSIGN THE VALUE TO THE IDENTIFIER
+        /// </summary>
+        /// <returns></returns>
         AST? Assignment()
         {
             AST? variable = new ASTStringLeaf(_currToken.value);
-            GetToken();
+            NextToken();
             while(_currToken.type != TokenType.EOF && _currToken.value == "=")
             {                
-                GetToken();
+                NextToken();
                 AST? rightNode = BooleanExpression();
                 EnvVariables.assign(variable.ToString(), rightNode.Eval());
                 variable = new ASTStringLeaf(variable.ToString() + "=" + rightNode.Eval().ToString());
@@ -136,6 +163,10 @@ namespace MatCom.Interpreter.Scanner
             return variable;
         }
 
+        /// <summary>
+        /// CALCULATE BOOLEAN VALUES.
+        /// </summary>
+        /// <returns></returns>
         AST? BooleanExpression()
         {
             AST? boolExpression = Expression();
@@ -143,7 +174,7 @@ namespace MatCom.Interpreter.Scanner
             while(_currToken.type != TokenType.EOF && boolExpression != null && _currToken.value is "==" or "!=" or "<" or "<=" or ">" or ">=")
             {
                 _operator = _currToken.value.ToString();
-                GetToken();
+                NextToken();
                 AST? rightNode = Expression();
                 boolExpression = new ASTBinaryOp(boolExpression, rightNode, _operator);
             }
@@ -151,7 +182,11 @@ namespace MatCom.Interpreter.Scanner
         }
 
 
-
+        /// <summary>
+        /// CALCULATE FOR + or - or BOOLEAN || operators.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         AST? Expression()
         {
             AST? expression = Term();
@@ -159,7 +194,7 @@ namespace MatCom.Interpreter.Scanner
             while(_currToken.type != TokenType.EOF && expression != null && _currToken.value is "+" or "-" or "||")
             {
                 _operator = _currToken.value;
-                GetToken();
+                NextToken();
                 if (_currToken.type == TokenType.Operator)
                     throw new Exception($"Invalid Operator {_currToken.value} at position {_currToken.position}");
                 AST? rightNode = Term();
@@ -169,6 +204,10 @@ namespace MatCom.Interpreter.Scanner
         }
 
 
+        /// <summary>
+        /// CALCULATE FOR * or / or % or && operators.
+        /// </summary>
+        /// <returns></returns>
         AST? Term()
         {
             AST? term = Power();
@@ -176,13 +215,17 @@ namespace MatCom.Interpreter.Scanner
             while (_currToken.type != TokenType.EOF && term != null && _currToken.value is "*" or "/" or "%" or "&&")
             {
                 _operator = _currToken.value;
-                GetToken();
+                NextToken();
                 AST? rightNode = Power();
                 term = new ASTBinaryOp(term, rightNode, _operator);
             }
             return term;
         }
 
+        /// <summary>
+        /// CALCULATE POWER OF A VALUE.
+        /// </summary>
+        /// <returns></returns>
         AST? Power()
         {
             AST? power = Factor();
@@ -190,29 +233,34 @@ namespace MatCom.Interpreter.Scanner
             while(_currToken.type != TokenType.EOF && power != null && _currToken.value == "^")
             {
                 _operator = _currToken.value;
-                GetToken();
+                NextToken();
                 AST? rightNode = Factor();
                 power = new ASTBinaryOp(power, rightNode, _operator);
             }
             return power;
         }
 
+        /// <summary>
+        /// THIS HANDLES FOR TERMINALS. 
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         AST? Factor()
         {
             AST? factor = null;
             switch (_currToken.type)
             {
                 case TokenType.LeftParantheses:
-                    GetToken();
+                    NextToken();
                     factor = BooleanExpression();
                     Match(")");
                     break;
                 case TokenType.Unary:
                     factor = new ASTNumericLeaf(Convert.ToDouble(_currToken.value));
-                    GetToken();
+                    NextToken();
                     break;
                 case TokenType.Operator:
-                    GetToken();
+                    NextToken();
                     factor = BooleanExpression();
                     break;
                 case TokenType.Identifier:
@@ -220,34 +268,39 @@ namespace MatCom.Interpreter.Scanner
                     if (identifierValue != null)
                     {
                         factor = new ASTNumericLeaf(Convert.ToDouble(identifierValue.ToString()));
-                        GetToken();
+                        NextToken();
                     }
                     else
                         throw new Exception($"unknown variable {_currToken.value} ");
                     break;
                 case TokenType.Constants:
                     factor = new ASTNumericLeaf(Convert.ToDouble(_currToken.value));
-                    GetToken();
+                    NextToken();
                     break;
                 case TokenType.Number:
                     factor = new ASTNumericLeaf(Convert.ToDouble(_currToken.value));
-                    GetToken();
+                    NextToken();
                     break;
                 case TokenType.Functions:
                     string functionName = _currToken.value;                    
-                    GetToken();
+                    NextToken();
                     if (_currToken.value == "(")
                     {
-                        GetToken();
-                        if(functionName.ToLower() == "diff")
+                        NextToken();
+                        if(functionName.ToLower() == "diffvalue")
                         {
                             _expression = Differentiate();
                             _currentPosition = 0;
-                            GetToken();
+                            NextToken();
                             factor = BooleanExpression();
                             factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), factor.Eval().ToString()));
                         }
-                        else if ((_currToken.type != TokenType.Number && _currToken.type != TokenType.Identifier) || (NextToken != null && NextToken().value != ")"))
+                        else if(functionName.ToLower() == "diff")
+                        {
+                            _expression = Differentiate();
+                            factor = new ASTStringLeaf(_expression);
+                        }
+                        else if ((_currToken.type != TokenType.Number && _currToken.type != TokenType.Identifier) || (NextToken != null && AdvanceToken().value != ")"))
                         {
                             factor = BooleanExpression();
                             factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), factor.Eval().ToString()));
@@ -259,7 +312,7 @@ namespace MatCom.Interpreter.Scanner
                                 factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), EnvVariables.getValue(_currToken.value).ToString()));
                             else
                                 factor = new ASTNumericLeaf(Constants.FunctionValue(functionName.ToLower(), _currToken.value));
-                            GetToken();
+                            NextToken();
                             Match(")");
                         }
                        
@@ -272,7 +325,7 @@ namespace MatCom.Interpreter.Scanner
             return factor;
         }
 
-        string Differentiate()
+        string Differentiate() //DIFFERNTIATION OF A FUNCTION.
         {
             string expression = String.Empty;
             for (int i=_currentPosition-1; i<Tokens.Count-2;i++)
@@ -357,6 +410,8 @@ namespace MatCom.Interpreter.Scanner
                     for (int i = 0; i < TokenList.Count; i++)
                     {
                         expression += TokenList[i].value;
+                        _currentPosition = i;
+                        _currToken = TokenList[i];
                     }
                     Tokens = TokenList;
                 }
@@ -368,7 +423,7 @@ namespace MatCom.Interpreter.Scanner
         {
             if (_currentPosition > 1 && Tokens[_currentPosition-1].value == expected)
             {
-                GetToken();
+                NextToken();
             }
             else
             {
